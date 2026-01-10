@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "build:html": "cpy index.html dist",
-    "build:js": "esbuild src/main.js --bundle --minify --sourcemap --outfile=dist/bundle.js",
+    "build:js": "esbuild src/main.js --bundle --minify --outfile=dist/bundle.js",
     "build:css": "npx @tailwindcss/cli -i ./css/main.css -o ./dist/output.css --minify",
     "build:prod": "npm run build:js && npm run build:css && npm run build:html",
     "dev:html": "cpy index.html dev --watch",

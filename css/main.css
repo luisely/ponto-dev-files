@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'AmazonEmber';
+  src: url('./font/AmazonEmber_Rg.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'AmazonEmber';
+  src: url('./font/AmazonEmber_Bd.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+body {
+  font-family: "AmazonEmber", "Inter",  sans-serif;
+}
+.suse {
+  font-family: 'SUSE Mono', monospace;
+  font-weight: 600;
+}
+#divPontos::-webkit-scrollbar {
+  display: none;
+}
+#divPontos {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+input[type='date'], input[type='time'] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.toastify {
+  opacity: 0.9 !important; /* Adjust the value (0.0 to 1.0) as desired */
+}
+.datepicker-picker{
+  background-color: #000 !important;
+  border: 1px solid #444 !important;
+  color: #fff !important;
+}
+.datepicker-controls .button{
+  background-color: #000 !important;
+  border: 0px solid #fff !important;
+  color: #fff !important;
+}
+.datepicker-cell:not(.disabled):hover{
+  color: #000 !important; 
+} 

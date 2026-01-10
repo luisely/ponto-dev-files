@@ -1,0 +1,31 @@
+{
+  "name": "ponto",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rimraf dist",
+    "build:html": "cpy index.html dist",
+    "build:js": "esbuild src/main.js --bundle --minify --sourcemap --outfile=dist/bundle.js",
+    "build:css": "npx @tailwindcss/cli -i ./css/main.css -o ./dist/output.css --minify",
+    "build:prod": "npm run build:js && npm run build:css && npm run build:html",
+    "dev:html": "cpy index.html dev --watch",
+    "dev:js": "esbuild src/main.js --bundle --sourcemap --outfile=dev/bundle.js --watch",
+    "dev:css": "npx @tailwindcss/cli -i ./css/main.css -o ./dev/output.css --watch",
+    "dev": "concurrently \"npm run dev:js\" \"npm run dev:css\" \"npm run dev:html\"",
+    "deploy": "npm run build:prod && cd dist && git add . && git commit -m \"Deploy\" && git push"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.13",
+    "tailwindcss": "^4.1.13"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.11",
+    "concurrently": "^9.2.1",
+    "cpy-cli": "^6.0.0",
+    "esbuild": "^0.27.2",
+    "rimraf": "^6.1.2"
+  }
+}

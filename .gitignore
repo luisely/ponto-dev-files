@@ -1,0 +1,12 @@
+_site/
+.post-template
+
+mock/
+images_ignore/
+node_modules/
+dist/
+dev/
+*/.pnp/
+
+# Sourcemaps
+*.map

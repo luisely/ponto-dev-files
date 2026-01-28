@@ -1,4 +1,4 @@
-import { tabelaDiv } from './vars3.js'
+import { tabelaDiv } from './conts'
 
 export function renderSkeleton() {
 	const skeletonHTML = `

@@ -1,10 +1,13 @@
-import { deleteRecord } from './services/deleteRecord.js'
-
-export function showDeleteModal(record) {
-	// Remove modal anterior caso exista
-	const prev = document.getElementById('delete-modal-overlay')
-	if (prev) prev.remove()
-
+export default function buildModal(
+	record?: string,
+	options?: {
+		message?: string
+		confirmText?: string
+		cancelText?: string
+		onConfirm?: (record?: string) => void
+		onCancel?: () => void
+	},
+) {
 	const [date, time] = (record || '').split('&')
 
 	const overlay = document.createElement('div')
@@ -20,20 +23,16 @@ export function showDeleteModal(record) {
 	modal.className = 'dark:bg-zinc-900/35 dark:text-white bg-white/65 border border-black/10 backdrop-blur-md rounded-md p-4 shadow-lg text-center w-11/12 max-w-sm'
 
 	message.className = 'mb-4'
-	message.textContent = `Deseja realmente excluir o registro de ${date} às ${time}?`
+	// Use custom message if provided, otherwise default to the delete text
+	message.textContent = options?.message ?? `Deseja realmente excluir o registro de ${date} às ${time}?`
 
 	buttons.className = 'flex gap-2 justify-center'
 
-	cancelBtn.textContent = 'Cancelar'
+	cancelBtn.textContent = options?.cancelText ?? 'Cancelar'
 	cancelBtn.className = 'dark:text-white border rounded px-3 py-1 hover:bg-gray-300 dark:hover:bg-gray-700 cursor-pointer'
-	cancelBtn.addEventListener('click', () => overlay.remove())
 
-	confirmBtn.textContent = 'Excluir'
+	confirmBtn.textContent = options?.confirmText ?? 'Excluir'
 	confirmBtn.className = 'bg-[#ef4444] hover:bg-red-700 px-3 py-1 rounded cursor-pointer'
-	confirmBtn.addEventListener('click', () => {
-		overlay.remove()
-		deleteRecord(record)
-	})
 
 	buttons.appendChild(cancelBtn)
 	buttons.appendChild(confirmBtn)
@@ -42,10 +41,24 @@ export function showDeleteModal(record) {
 	modal.appendChild(buttons)
 	overlay.appendChild(modal)
 
-	// fechar ao clicar fora
-	overlay.addEventListener('click', (e) => {
-		if (e.target === overlay) overlay.remove()
+	// Wire callbacks: view removes itself, then invokes callbacks so logic stays in caller
+	cancelBtn.addEventListener('click', () => {
+		overlay.remove()
+		options?.onCancel?.()
 	})
 
-	document.body.appendChild(overlay)
+	confirmBtn.addEventListener('click', () => {
+		overlay.remove()
+		options?.onConfirm?.(record)
+	})
+
+	// fechar ao clicar fora
+	overlay.addEventListener('click', (e) => {
+		if (e.target === overlay) {
+			overlay.remove()
+			options?.onCancel?.()
+		}
+	})
+
+	return { overlay }
 }

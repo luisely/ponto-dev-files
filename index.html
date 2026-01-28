@@ -5,8 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Registrar">
+  <meta name="theme-color" content="#030812">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,11 +21,6 @@
     href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Madimi+One&family=Radio+Canada+Big:ital,wght@0,400..700;1,400..700&family=SUSE+Mono:ital,wght@0,100..800;1,100..800&display=swap"
     rel="stylesheet">
 
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/datepicker-full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/locales/pt.js"></script>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-
   <style>
     input {
       -webkit-appearance: none;
@@ -37,39 +33,40 @@
 </head>
 
 <body class="dark:bg-black w-dvw h-dvh flex items-center justify-center py-4">
-  <div class="flex flex-col items-center justify-center h-full w-full max-w-[340px]">
+  <div class="flex flex-col items-center justify-center h-full w-full max-w-85">
     <div class="w-full"></div>
 
     <!-- INPUTS USERS DATA -->
     <div class="dark:text-white text-lg">
       <form id="form">
         <div
-          class="w-full max-w-[340px] mx-auto flex border-b border-l border-t border-r rounded-t-md dark:border-zinc-500/35 border-blue-500 items-center px-1">
+          class="w-full max-w-85 mx-auto flex border-b border-l border-t border-r rounded-t-md dark:border-zinc-500/35 bg-[#030812] border-black items-center px-1">
           <input
-            class="w-48 h-8 max-w-[340px] px-2 outline-none rounded-md border-r dark:border-zinc-500/35 border-blue-500"
+            class="w-48 h-8 max-w-85 px-2 text-center outline-none rounded-md border-r dark:border-zinc-500/35 border-black"
             type="text" id="name" placeholder="Nome" maxlength="20" spellcheck="false" />
           <input id="digits"
-            class="w-full max-w-[340px] rounded-tr text-center dark:border-zinc-500/35 outline-none border-blue-500 "
+            class="w-full max-w-85 rounded-tr text-center dark:border-zinc-500/35 outline-none border-black "
             inputmode="numeric" pattern="[0-9]*" placeholder="pin" maxlength="3" type="password" />
         </div>
       </form>
 
       <div
-        class="w-full max-w-[340px] mx-auto flex items-center border-b border-l border-r dark:border-zinc-500/35 border-blue-500 px-1">
-        <input class="w-48 h-8 max-w-[340px] px-2 border-r dark:border-zinc-500/35 border-blue-500 outline-none"
+        class="w-full max-w-85 mx-auto flex items-center border-b border-l border-r rounded-b dark:border-zinc-500/35 bg-[#030812] border-black px-1">
+        <input class="w-48 h-8 max-w-85 px-2 border-r dark:border-zinc-500/35 border-black outline-none text-center"
           type="text" id="date" placeholder="Data" name="date" inputmode='none' />
-        <input class="w-full max-w-[340px] px-4 outline-none" type="time" id="time" placeholder="Hora" />
+        <input class="w-full max-w-85 px-4 outline-none text-center" type="time" id="time" placeholder="Hora" />
       </div>
     </div>
 
     <!-- BUTTONS -->
-    <div class="w-full max-w-[340px] flex justify-between">
+    <div class="w-full max-w-85 flex mt-2">
       <button id="registerBtn" class="w-full py-2
               text-lg cursor-pointer
-              bg-blue-500 text-white rounded-b
+              bg-blue-500 text-white rounded
               hover:bg-blue-700
-              dark:hover:bg-blue-900/85
-              dark:bg-blue-900/75
+              dark:bg-[#030812]
+              dark:hover:bg-[#050e20]
+              border border-black dark:border-zinc-500/35
               font-semibold tracking-wide
               transform transition-all duration-150
               data-[isLoading='true']:cursor-not-allowed data-[isLoading='true']:opacity-50 ">
@@ -78,7 +75,7 @@
 
 
     </div>
-    <div id="divPontos" class="w-full text-white max-w-[340px] mt-2 overflow-y-auto space-y-2">
+    <div id="divPontos" class="w-full text-white max-w-85 mt-2 overflow-y-auto space-y-2">
     </div>
   </div>
   <script type="module" src="./bundle.js"></script>

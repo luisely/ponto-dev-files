@@ -1,9 +1,15 @@
-import { renderSkeleton } from './renderSkeleton.js'
-import { renderTabelaPontos } from './renderTabelaPontos.js'
-import { getPontos } from './services/getPontos.js'
-import { tabelaDiv, toastError } from './vars3.js'
+import { tabelaDiv, toastError } from './conts'
+import { renderSkeleton } from './renderSkeleton'
+import { renderTabelaPontos } from './renderTabelaPontos'
+import { batidaPontoService } from './services/BatidaServices'
 
-export async function atualizarTabelaPontos(name, digits) {
+/**
+ * Atualiza a tabela de pontos do usuário.
+ * @param {string} name - username.
+ * @param {string} digits - digits.
+ */
+
+export async function atualizarTabelaPontos(name: string, digits: string) {
 	const cacheKey = `pontos_${name}_${digits}`
 	const cachedData = localStorage.getItem(cacheKey)
 
@@ -22,7 +28,7 @@ export async function atualizarTabelaPontos(name, digits) {
 	}
 
 	try {
-		const data = await getPontos(name, digits)
+		const data = await batidaPontoService.getPontos(name, digits)
 		const pontos = data.pontos || []
 
 		renderTabelaPontos(pontos)

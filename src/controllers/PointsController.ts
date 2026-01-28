@@ -6,7 +6,6 @@ import { uiController } from './UIController'
 
 class PointsController {
 	initForCredentials(name: string, digits: string) {
-		// delegate to existing helper which handles cache + skeleton + render
 		atualizarTabelaPontos(name, digits)
 	}
 
@@ -30,6 +29,7 @@ class PointsController {
 		} catch (error) {
 			uiController.showError('Erro de comunicação.')
 			console.error('Erro ao registrar ponto:', error)
+		} finally {
 		}
 	}
 

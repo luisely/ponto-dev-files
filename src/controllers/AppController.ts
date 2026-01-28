@@ -37,8 +37,10 @@ class AppController {
 				return
 			}
 
-			// show loading state on button handled by caller; PointsController will perform register
+			uiController.isLoading(true)
 			await pointsController.registerPoint(name, digits, date, time)
+
+			uiController.isLoading(false)
 			credentials.save(name, digits)
 		})
 

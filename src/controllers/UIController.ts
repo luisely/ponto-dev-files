@@ -1,5 +1,5 @@
 import { Datepicker } from 'vanillajs-datepicker'
-import { btnRegister, form, inputName, inputPin, inputTime, tabelaDiv, toastError, toastInfo, toastSuccess } from '../conts'
+import { BUTTON_WITH_LOADING, btnRegister, form, inputName, inputPin, inputTime, tabelaDiv, toastError, toastInfo, toastSuccess } from '../conts'
 import { credentials } from '../credentials'
 import buildDeleteModal from '../modalView'
 import { renderSkeleton } from '../renderSkeleton'
@@ -56,6 +56,18 @@ class UIController {
 		form.addEventListener('focusout', handler)
 	}
 
+	isLoading(isLoading: boolean) {
+		if (isLoading) {
+			btnRegister.innerHTML = BUTTON_WITH_LOADING
+			btnRegister.disabled = true
+			btnRegister.setAttribute('data-isLoading', 'true')
+		} else {
+			btnRegister.innerHTML = 'Registrar'
+			btnRegister.disabled = false
+			btnRegister.setAttribute('data-isLoading', 'false')
+		}
+	}
+
 	bindTableDelete(handler: (record: string | undefined) => void) {
 		tabelaDiv.addEventListener('click', (event) => {
 			const target = event.target as Element | null
@@ -68,7 +80,6 @@ class UIController {
 	}
 
 	showDeleteModal(record: string | undefined, onConfirm: (r?: string) => void) {
-		// remove previous overlay if any
 		const prev = document.getElementById('delete-modal-overlay')
 		if (prev) prev.remove()
 
@@ -77,7 +88,6 @@ class UIController {
 				try {
 					onConfirm(r)
 				} catch (err) {
-					// allow caller to handle errors; show generic message here
 					toastError('Erro ao excluir o registro.')
 					console.error('Error in onConfirm handler:', err)
 				}

@@ -2,12 +2,23 @@ import { credentials } from '../credentials'
 import { api } from './axios'
 
 class BatidaServices {
-	async getPontos(name: string, digits: string) {
+	async add(name: string, digits: string, date: string, time: string) {
+		return await api.post('register', {
+			PK: name,
+			SK: digits.toString(),
+			name,
+			cpf3Digits: digits,
+			date,
+			time,
+		})
+	}
+
+	async get(name: string, digits: string) {
 		const response = await api.get(`getPontos/${name}/${digits}`)
 		return response.data
 	}
 
-	async deleteRecord(record: string | undefined) {
+	async remove(record: string | undefined) {
 		const [date, time] = record?.split('&') || ['', '']
 		const { name, digits } = credentials.ensure()
 

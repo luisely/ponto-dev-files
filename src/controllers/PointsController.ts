@@ -1,6 +1,5 @@
 import { atualizarTabelaPontos } from '../atualizarTabelaPontos'
 import { credentials } from '../credentials'
-import { api } from '../services/axios'
 import { batidaPontoService } from '../services/BatidaServices'
 import { uiController } from './UIController'
 
@@ -11,14 +10,7 @@ class PointsController {
 
 	async registerPoint(name: string, digits: string, date: string, time: string) {
 		try {
-			const response = await api.post('register', {
-				PK: name,
-				SK: digits.toString(),
-				name,
-				cpf3Digits: digits,
-				date,
-				time,
-			})
+			const response = await batidaPontoService.add(name, digits, date, time)
 
 			if (response.status === 200 || response.status === 201) {
 				uiController.showSuccess('Registro realizado com sucesso!')
@@ -35,7 +27,7 @@ class PointsController {
 
 	async deleteRecord(record: string | undefined) {
 		try {
-			const response = await batidaPontoService.deleteRecord(record)
+			const response = await batidaPontoService.remove(record)
 			if (response && response.status === 200) {
 				uiController.showSuccess('Registro excluído com sucesso!')
 				const { name, digits } = credentials.get()

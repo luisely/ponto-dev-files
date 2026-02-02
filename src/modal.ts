@@ -12,7 +12,7 @@ export function showDeleteModal(record: string | undefined) {
 	const { overlay } = buildDeleteModal(record, {
 		onConfirm: async () => {
 			try {
-				const response = await batidaPontoService.deleteRecord(record)
+				const response = await batidaPontoService.remove(record)
 				if (response && response.status === 200) {
 					toastSuccess('Registro excluído com sucesso!')
 					const { name, digits } = credentials.get()

@@ -28,7 +28,7 @@ export async function atualizarTabelaPontos(name: string, digits: string) {
 	}
 
 	try {
-		const data = await batidaPontoService.getPontos(name, digits)
+		const data = await batidaPontoService.get(name, digits)
 		const pontos = data.pontos || []
 
 		renderTabelaPontos(pontos)

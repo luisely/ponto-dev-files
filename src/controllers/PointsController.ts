@@ -30,10 +30,12 @@ class PointsController {
 			const response = await batidaPontoService.remove(record)
 			if (response && response.status === 200) {
 				uiController.showSuccess('Registro excluído com sucesso!')
-				const { name, digits } = credentials.get()
-				if (name && digits) await atualizarTabelaPontos(name, digits)
+				// Otimistic update already removed it from UI, no need to reload
 			} else {
 				uiController.showError('Erro ao excluir o registro.')
+				// Reload on error to restore optimistically removed item
+				const { name, digits } = credentials.get()
+				if (name && digits) await atualizarTabelaPontos(name, digits)
 			}
 		} catch (error) {
 			const msg = error && (error as Error).message
@@ -43,6 +45,9 @@ class PointsController {
 				uiController.showError('Erro de comunicação.')
 				console.error('Erro ao excluir registro:', error)
 			}
+			// Reload on error to restore optimistically removed item
+			const { name, digits } = credentials.get()
+			if (name && digits) await atualizarTabelaPontos(name, digits)
 		}
 	}
 }

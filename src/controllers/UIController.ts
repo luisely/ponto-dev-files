@@ -62,7 +62,7 @@ class UIController {
 			btnRegister.disabled = true
 			btnRegister.setAttribute('data-isLoading', 'true')
 		} else {
-			btnRegister.innerHTML = 'Registrar'
+			btnRegister.innerHTML = 'REGISTRAR'
 			btnRegister.disabled = false
 			btnRegister.setAttribute('data-isLoading', 'false')
 		}
@@ -94,6 +94,27 @@ class UIController {
 			},
 			onCancel: () => {
 				/* no-op */
+			},
+			onOptimisticRemove: () => {
+				// Remove only the specific time item, not the entire date block
+				if (record) {
+					const link = tabelaDiv.querySelector(`[data-record="${record}"]`)
+					if (link) {
+						// Get dateBlock reference BEFORE removing, because removing timeItem also removes link from DOM
+						const dateBlock = link.closest('.w-full')
+						const timeItem = link.closest('.mx-2')
+						if (timeItem) {
+							timeItem.remove()
+							// Check if the times container is now empty by counting remaining time items
+							if (dateBlock) {
+								const remainingTimes = dateBlock.querySelectorAll('.mx-2').length
+								if (remainingTimes === 0) {
+									dateBlock.remove()
+								}
+							}
+						}
+					}
+				}
 			},
 		})
 

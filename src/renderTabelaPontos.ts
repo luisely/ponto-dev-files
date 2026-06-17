@@ -50,30 +50,29 @@ export function renderTabelaPontos(pontos: Ponto[]) {
 export function buildDateBlock(date: string, times: string[], totalHHMM: string, isPlus8h?: boolean, isLess8h?: boolean, isOk?: boolean) {
 	const [day, month, year] = date.split('/').map(Number)
 	let out = ''
-	out += `<div>`
-	out += `<div class="text-center text-base h-8 font-bold tracking-wider rounded-t dark:bg-[#19243a] bg-stone-500/15 border-b border-b-black/85 
-				dark:border-b-white/65 dark:text-stone-300 text-black suse flex justify-between items-center px-2">
-				${date} - ${new Date(year, month - 1, day).toLocaleDateString('pt-BR', { weekday: 'short' })}
-					<span 
-						data-less8h=${isLess8h} 
-						data-plus8h=${isPlus8h} 
-						data-ok=${isOk} 
-						class=" data-[less8h='true']:dark:text-amber-400 data-[less8h='true']:text-amber-700 data-[plus8h='true']:dark:text-pink-400 data-[plus8h='true']:text-pink-600"
-					>
-						🕛 ${totalHHMM}${isPlus8h ? '!' : ''}
-					</span>
-				</div>`
+	out += `<div class="w-full">`
+	out += `<div class="text-center text-lg sm:text-base md:text-lg lg:text-2xl h-8 lg:h-12 tracking-wider rounded-t-xs border dark:bg-[#0D0D0D] bg-stone-500/15 border-b-2 border-b-black/85 dark:border-[#1D4A2E] dark:text-[#EDE7D6] text-black flex justify-between items-center px-2">
+			${date} - ${new Date(year, month - 1, day).toLocaleDateString('pt-BR', { weekday: 'short' })}
+				<span 
+					data-less8h=${isLess8h} 
+					data-plus8h=${isPlus8h} 
+					data-ok=${isOk} 
+					class="text-lg sm:text-base md:text-lg lg:text-2xl data-[less8h='true']:dark:text-amber-400 data-[less8h='true']:text-amber-700 data-[plus8h='true']:dark:text-pink-400 data-[plus8h='true']:text-pink-600"
+				>
+					${totalHHMM}${isPlus8h ? '!' : ''}
+				</span>
+			</div>`
 
-	out += `<div class="flex justify-between px-1 py-1 mb-1 rounded-b dark:bg-[#050e20] bg-blue-500">`
+	out += `<div class="flex justify-between px-1 py-1 mb-1 border-b border-l border-r border-black/85 dark:border-[#1D4A2E] bg-[#EDE7D6]/50 dark:bg-[#0D0D0D]/45 rounded-b-xs">`
 	times
 		.slice()
 		.sort()
 		.forEach((time) => {
-			out += `<div class="text-md mx-2">
-						 <a href="#" class="link-delete hover:text-blue-400 dark:text-white suse text-lg transition" data-record="${date}&${time}">
-							 •${time}
-						 </a>
-					 </div>`
+			out += `<div class="mx-2">
+					 <a href="#" class="link-delete hover:brightness-110 text-teal-900 dark:text-[#F5B11E] clock text-xl md:text-xl lg:text-2xl transition" data-record="${date}&${time}">
+						 •${time}
+					 </a>
+				</div>`
 		})
 	out += `</div>`
 	out += `</div>`

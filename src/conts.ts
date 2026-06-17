@@ -19,9 +19,13 @@ export const toastSuccess = (message: string) =>
 		text: message,
 		className: 'rounded-md text-sm py-2 px-2',
 		duration: 3000,
-		gravity: 'top',
+		gravity: 'bottom',
 		position: 'center',
-		backgroundColor: '#22c55e',
+		style: {
+			fontWeight: '600',
+			background: '#1D4A2E',
+			opacity: '0.85',
+		},
 	}).showToast()
 
 export const toastError = (message: string) =>
@@ -29,7 +33,7 @@ export const toastError = (message: string) =>
 		text: message,
 		className: 'rounded-md text-sm py-2 px-2',
 		duration: 3000,
-		gravity: 'top',
+		gravity: 'bottom',
 		position: 'center',
 		backgroundColor: '#8b2c2c',
 	}).showToast()

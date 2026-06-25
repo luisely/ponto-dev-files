@@ -1,17 +1,5 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: 'AmazonEmber';
-  src: url('./font/AmazonEmber_Rg.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'AmazonEmber';
-  src: url('./font/AmazonEmber_Bd.ttf') format('truetype');
-  font-weight: bold;
-  font-style: normal;
-}
 body {
   font-family: "Space Grotesk", "Inter",  sans-serif;
   font-weight: 600;

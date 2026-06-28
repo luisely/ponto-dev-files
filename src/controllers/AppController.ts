@@ -9,9 +9,12 @@ class AppController {
 		uiController.initDatepicker()
 		uiController.setDefaultTime()
 		uiController.setNameAndDigitsInputs()
+		uiController.createLucideIcons()
 
 		const { name, digits } = credentials.get()
 		if (name && digits) {
+			// Show welcome message for logged-in users
+			uiController.showWelcomeMessage(name)
 			// load existing data
 			pointsController.initForCredentials(name, digits)
 		} else {
@@ -38,10 +41,16 @@ class AppController {
 			}
 
 			uiController.isLoading(true)
-			await pointsController.registerPoint(name, digits, date, time)
+			const success = await pointsController.registerPoint(name, digits, date, time)
 
 			uiController.isLoading(false)
-			credentials.save(name, digits)
+			if (success) {
+				uiController.showSuccess('Registro realizado com sucesso!')
+				credentials.save(name, digits)
+				uiController.showWelcomeMessage(name)
+			} else {
+				uiController.showError('Erro ao registrar. Tente novamente.')
+			}
 		})
 
 		// delete handler (uses modal wrapper in UIController)
@@ -49,6 +58,11 @@ class AppController {
 			uiController.showDeleteModal(record, async () => {
 				await pointsController.deleteRecord(record)
 			})
+		})
+
+		uiController.bindMenu(async () => {
+			uiController.showMenuModal()
+			uiController.createLucideIcons()
 		})
 	}
 }

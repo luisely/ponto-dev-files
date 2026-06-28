@@ -1,8 +1,26 @@
+import { createIcons, Eraser, LogOut, Menu } from 'lucide'
 import { Datepicker } from 'vanillajs-datepicker'
-import { BUTTON_WITH_LOADING, btnRegister, form, inputName, inputPin, inputTime, tabelaDiv, toastError, toastInfo, toastSuccess } from '../conts'
+import {
+	btnRegister,
+	BUTTON_WITH_LOADING,
+	form,
+	inputName,
+	inputPin,
+	inputTime,
+	loginFields,
+	menuBtn,
+	tabelaDiv,
+	toastError,
+	toastInfo,
+	toastSuccess,
+	welcomeMessage,
+	welcomeTitle,
+} from '../conts'
 import { credentials } from '../credentials'
 import buildDeleteModal from '../modalView'
+import buildModalMenu from '../modalViewMenu'
 import { renderSkeleton } from '../renderSkeleton'
+import pointsController from './PointsController'
 
 class UIController {
 	initDatepicker() {
@@ -52,6 +70,10 @@ class UIController {
 		btnRegister.addEventListener('click', handler)
 	}
 
+	bindMenu(handler: (e?: Event) => void) {
+		menuBtn.addEventListener('click', handler)
+	}
+
 	bindFormFocusOut(handler: () => void) {
 		form.addEventListener('focusout', handler)
 	}
@@ -76,6 +98,27 @@ class UIController {
 				event.preventDefault()
 				handler(linkClicado.dataset.record)
 			}
+		})
+	}
+
+	showWelcomeMessage(userName: string) {
+		welcomeTitle.textContent = `Bem-vindo, ${userName}!`
+		welcomeMessage.classList.remove('hidden')
+		loginFields.classList.add('hidden')
+	}
+
+	hideWelcomeMessage() {
+		welcomeMessage.classList.add('hidden')
+		loginFields.classList.remove('hidden')
+	}
+
+	createLucideIcons() {
+		createIcons({
+			icons: {
+				Menu,
+				LogOut,
+				Eraser,
+			},
 		})
 	}
 
@@ -115,6 +158,37 @@ class UIController {
 						}
 					}
 				}
+			},
+		})
+
+		document.body.appendChild(overlay)
+	}
+
+	showMenuModal() {
+		// Remove modal anterior caso exista
+		const prev = document.getElementById('delete-modal-overlay')
+		if (prev) prev.remove()
+
+		const { overlay } = buildModalMenu({
+			message: 'O QUE DESEJA?',
+			deleteAllText: 'APAGAR TUDO',
+			logoutText: 'SAIR',
+			onLogout: () => {
+				credentials.clear()
+				location.reload()
+			},
+			onDeleteAll: async () => {
+				const confirmed = confirm('Todos os registros serão excluídos. Esta ação não pode ser desfeita.')
+				if (confirmed) {
+					await pointsController.deleteAllRecords()
+					credentials.clearPontos()
+				}
+			},
+			onOptimisticRemove: () => {
+				/* no-op for now; kept for future hooks */
+			},
+			onCancel: () => {
+				/* no-op for now; kept for future hooks */
 			},
 		})
 

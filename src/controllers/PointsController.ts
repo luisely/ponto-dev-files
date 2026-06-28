@@ -8,20 +8,19 @@ class PointsController {
 		atualizarTabelaPontos(name, digits)
 	}
 
-	async registerPoint(name: string, digits: string, date: string, time: string) {
+	async registerPoint(name: string, digits: string, date: string, time: string): Promise<boolean> {
 		try {
 			const response = await batidaPontoService.add(name, digits, date, time)
 
 			if (response.status === 200 || response.status === 201) {
-				uiController.showSuccess('Registro realizado com sucesso!')
 				this.initForCredentials(name, digits)
-			} else {
-				uiController.showError('Erro ao registrar. Tente novamente.')
+				return true
 			}
+
+			return false
 		} catch (error) {
-			uiController.showError('Erro de comunicação.')
 			console.error('Erro ao registrar ponto:', error)
-		} finally {
+			return false
 		}
 	}
 
@@ -33,6 +32,34 @@ class PointsController {
 				// Otimistic update already removed it from UI, no need to reload
 			} else {
 				uiController.showError('Erro ao excluir o registro.')
+				// Reload on error to restore optimistically removed item
+				const { name, digits } = credentials.get()
+				if (name && digits) await atualizarTabelaPontos(name, digits)
+			}
+		} catch (error) {
+			const msg = error && (error as Error).message
+			if (msg === 'Preencha todos os campos corretamente.') {
+				uiController.showInfo(msg)
+			} else {
+				uiController.showError('Erro de comunicação.')
+				console.error('Erro ao excluir registro:', error)
+			}
+			// Reload on error to restore optimistically removed item
+			const { name, digits } = credentials.get()
+			if (name && digits) await atualizarTabelaPontos(name, digits)
+		}
+	}
+
+	async deleteAllRecords() {
+		try {
+			const response = await batidaPontoService.removeAll()
+			if (response && response.status === 200) {
+				uiController.showSuccess('Todos os registros excluídos com sucesso!')
+				const { name, digits } = credentials.get()
+				if (name && digits) await atualizarTabelaPontos(name, digits)
+				// Otimistic update already removed it from UI, no need to reload
+			} else {
+				uiController.showError('Erro ao excluir.')
 				// Reload on error to restore optimistically removed item
 				const { name, digits } = credentials.get()
 				if (name && digits) await atualizarTabelaPontos(name, digits)

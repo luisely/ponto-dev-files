@@ -6,10 +6,15 @@ export const inputDate = document.getElementById('date') as HTMLInputElement
 export const inputTime = document.getElementById('time') as HTMLInputElement
 export const form = document.getElementById('form') as HTMLFormElement
 export const btnRegister = document.getElementById('registerBtn') as HTMLButtonElement
+export const logoutBtn = document.getElementById('logoutBtn') as HTMLButtonElement
+export const deleteAllBtn = document.getElementById('deleteAllBtn') as HTMLButtonElement
+export const menuBtn = document.getElementById('menuBtn') as HTMLButtonElement
+export const menuDropdown = document.getElementById('menuDropdown') as HTMLDivElement
+export const loginFields = document.getElementById('loginFields') as HTMLDivElement
 
 export const getFieldsValues = () => ({ name: inputName?.value.trim().toLowerCase(), digits: inputPin?.value.trim() })
 
-export const BUTTON_WITH_LOADING = `<svg class="animate-spin h-5 w-5 mr-2 inline-block dark:text-white text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+export const BUTTON_WITH_LOADING = `<svg class="animate-spin h-5 w-5 mr-2 inline-block dark:text-[#F5B11E] text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                                     </svg>`
@@ -49,3 +54,5 @@ export const toastInfo = (message: string) =>
 	}).showToast()
 
 export const tabelaDiv = document.getElementById('divPontos') as HTMLDivElement
+export const welcomeMessage = document.getElementById('welcomeMessage') as HTMLDivElement
+export const welcomeTitle = document.getElementById('welcomeTitle') as HTMLElement

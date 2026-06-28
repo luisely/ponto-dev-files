@@ -24,6 +24,12 @@ class BatidaServices {
 
 		return await api.delete(`delete/${name}/${digits}/record?date=${date}&time=${time}`)
 	}
+
+	async removeAll() {
+		const { name, digits } = credentials.ensure()
+
+		return await api.delete(`delete/${name}/${digits}/all`)
+	}
 }
 
 export const batidaPontoService = new BatidaServices()

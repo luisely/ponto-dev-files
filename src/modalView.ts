@@ -85,10 +85,8 @@ export default function buildModal(
 	cancelBtn.addEventListener('click', () => {
 		cancelBtn.disabled = true
 		confirmBtn.disabled = true
-		setTimeout(() => {
-			overlay.remove()
-			options?.onCancel?.()
-		}, 600)
+		overlay.remove()
+		options?.onCancel?.()
 	})
 
 	confirmBtn.addEventListener('click', () => {

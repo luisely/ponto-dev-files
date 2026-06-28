@@ -8,6 +8,19 @@ class Credentials {
 		localStorage.setItem(this.NAME_KEY, name)
 		localStorage.setItem(this.DIGITS_KEY, digits)
 	}
+	clear() {
+		localStorage.removeItem(this.NAME_KEY)
+		localStorage.removeItem(this.DIGITS_KEY)
+		this.clearPontos()
+	}
+
+	clearPontos() {
+		for (const key of Object.keys(localStorage)) {
+			if (key.startsWith('pontos_')) {
+				localStorage.removeItem(key)
+			}
+		}
+	}
 
 	get(): { name: string | null; digits: string | null } {
 		return {

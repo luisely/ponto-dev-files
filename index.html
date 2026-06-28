@@ -1,12 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self' https:; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:;">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Registrar">
@@ -41,22 +39,38 @@
   <div class="flex flex-col items-center justify-center h-full w-full px-4">
     <div class="lg:w-2xl text-xs px-4 text-white text-left"></div>
 
+    <!-- WELCOME MESSAGE -->
+    <div id="welcomeMessage" class="hidden w-full md:max-w-xl lg:max-w-2xl text-center text-white">
+      <div class="bg-[#0D0D0D]/50 dark:border-[#1D4A2E] border border-black rounded-xs p-2 lg:p-4">
+        <div class="flex items-center justify-between w-full">
+
+          <h1 aria-label="Bem-vindo" id="welcomeTitle" class="text-2xl lg:text-4xl font-bold text-[#54dd89]"></h1>
+          <div>
+            <button id="menuBtn" type="button"
+              class="rounded border border-[#1D4A2E] bg-[#0D0D0D] p-2 text-white hover:bg-[#1D4A2E]/50 cursor-pointer shadow-2xl">
+              <i data-lucide="menu"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- INPUTS USERS DATA -->
     <form id="form" class="dark:text-[#EDE7D6] w-full md:max-w-xl lg:max-w-2xl">
-      <div
+      <div id="loginFields"
         class="w-full mx-auto flex border dark:border-[#1D4A2E] border-black items-center px-1 bg-[#9dfac1] dark:bg-[#0D0D0D]/50 rounded-t-xs">
         <input
-          class="h-8 lg:h-12 lg:text-2xl text-center outline-none rounded-md border-r dark:border-[#1D4A2E] border-black text-lg sm:text-base md:text-lg"
+          class="h-10 lg:h-12 lg:text-2xl text-center outline-none rounded-md border-r dark:border-[#1D4A2E] border-black text-lg sm:text-base md:text-lg"
           type="text" id="name" placeholder="Nome" maxlength="20" spellcheck="false" />
         <input id="digits"
           class="w-full lg:h-12 lg:text-2xl rounded-tr text-center dark:border-[#1D4A2E] outline-none border-black text-lg sm:text-base md:text-lg"
           inputmode="numeric" pattern="[0-9]*" placeholder="pin" maxlength="3" type="password" />
       </div>
 
-      <div
+      <div id="dateAndTimeContainer"
         class="w-full mx-auto flex items-center border-b border-l border-r dark:border-[#1D4A2E] bg-[#9dfac1] dark:bg-[#0D0D0D]/50 border-black px-1">
         <input
-          class="h-8 lg:h-12 lg:text-2xl border-r dark:border-[#1D4A2E] border-black outline-none text-center text-lg sm:text-base md:text-lg"
+          class="h-10 lg:h-12 lg:text-2xl border-r dark:border-[#1D4A2E] border-black outline-none text-center text-lg sm:text-base md:text-lg"
           type="text" id="date" placeholder="Data" name="date" inputmode='none' />
         <input class="w-full px-4 lg:h-12 lg:text-2xl outline-none text-center text-lg sm:text-base md:text-lg"
           type="time" id="time" placeholder="Hora" />
@@ -65,7 +79,7 @@
 
     <!-- BUTTONS -->
     <div class="w-full flex mt-2 md:max-w-xl lg:max-w-2xl">
-      <button id="registerBtn" class="w-full py-2 text-lg sm:text-base md:text-lg lg:text-2xl xl:text-2xl
+      <button type="button" id="registerBtn" class="w-full py-2 text-lg sm:text-base md:text-lg lg:text-2xl xl:text-2xl
               cursor-pointer bg-[#54dd89] text-black dark:text-[#f59f1e] rounded-xs
               hover:bg-[#2ea15b] hover:text-[#0B1A12]
               dark:bg-[#0B1A12] dark:hover:bg-[#F5B11E]

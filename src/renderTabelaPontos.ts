@@ -51,7 +51,7 @@ export function buildDateBlock(date: string, times: string[], totalHHMM: string,
 	const [day, month, year] = date.split('/').map(Number)
 	let out = ''
 	out += `<div class="w-full">`
-	out += `<div class="text-center text-lg sm:text-base md:text-lg lg:text-2xl h-8 lg:h-12 tracking-wider rounded-t-xs border dark:bg-[#0D0D0D] bg-stone-500/15 border-b-2 border-b-black/85 dark:border-[#1D4A2E] dark:text-[#EDE7D6] text-black flex justify-between items-center px-2">
+	out += `<div class="text-center text-base md:text-lg lg:text-2xl h-8 lg:h-12 tracking-wider rounded-t-xs border dark:bg-[#0D0D0D] bg-stone-500/15 border-b-2 border-b-black/85 dark:border-[#1D4A2E] dark:text-[#EDE7D6] text-black flex justify-between items-center px-2">
 			${date} - ${new Date(year, month - 1, day).toLocaleDateString('pt-BR', { weekday: 'short' })}
 				<span 
 					data-less8h=${isLess8h} 
@@ -63,13 +63,13 @@ export function buildDateBlock(date: string, times: string[], totalHHMM: string,
 				</span>
 			</div>`
 
-	out += `<div class="flex justify-between px-1 py-1 mb-1 border-b border-l border-r border-black/85 dark:border-[#1D4A2E] bg-[#EDE7D6]/50 dark:bg-[#0D0D0D]/45 rounded-b-xs">`
+	out += `<div class="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 px-1 py-1 mb-1 border-b border-l border-r border-black/85 dark:border-[#1D4A2E] bg-[#EDE7D6]/50 dark:bg-[#0D0D0D]/45 rounded-b-xs overflow-x-hidden">`
 	times
 		.slice()
 		.sort()
 		.forEach((time) => {
-			out += `<div class="mx-2">
-					 <a href="#" class="link-delete hover:brightness-110 text-teal-900 dark:text-[#F5B11E] clock text-xl md:text-xl lg:text-2xl transition" data-record="${date}&${time}">
+			out += `<div class="shrink-0">
+					 <a href="#" class="link-delete hover:brightness-110 text-teal-900 dark:text-[#F5B11E] clock text-xl md:text-xl lg:text-2xl transition whitespace-nowrap" data-record="${date}&${time}">
 						 •${time}
 					 </a>
 				</div>`

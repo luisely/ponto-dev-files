@@ -8,7 +8,7 @@
     "build:html:process": "node scripts/process-html.js",
     "build:js": "esbuild src/main.ts --bundle --minify --outdir=dist --entry-names=[name]-[hash] --asset-names=assets/[name]-[hash] --loader:.css=css --metafile=dist/meta.json",
     "build:css": "npx @tailwindcss/cli -i ./css/main.css -o ./css/output.css --minify",
-    "build:prod": "npm run clean && npm run build:css && npm run build:js && npm run build:html:process",
+    "build:prod": "npm run clean && npm run build:css && npm run build:js && npm run build:html:process && node scripts/copy-static-files.js",
     "dev:html": "cpy index.html dev && onchange \"index.html\" -- cpy index.html dev",
     "dev:js": "esbuild src/main.ts --bundle --outfile=dev/bundle.js --watch",
     "dev:css": "npx @tailwindcss/cli -i ./css/main.css -o ./dev/output.css --watch",

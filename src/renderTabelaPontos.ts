@@ -12,6 +12,10 @@ type Ponto = {
 	SK: string
 }
 
+function buildElementId(value: string) {
+	return value.replace(/[^a-zA-Z0-9_-]/g, '-')
+}
+
 export function renderTabelaPontos(pontos: Ponto[]) {
 	if (!pontos || pontos.length === 0) {
 		tabelaDiv.innerHTML = ''
@@ -50,7 +54,7 @@ export function renderTabelaPontos(pontos: Ponto[]) {
 export function buildDateBlock(date: string, times: string[], totalHHMM: string, isPlus8h?: boolean, isLess8h?: boolean, isOk?: boolean) {
 	const [day, month, year] = date.split('/').map(Number)
 	let out = ''
-	out += `<div class="w-full">`
+	out += `<div id="date-block-${buildElementId(date)}" class="w-full">`
 	out += `<div class="text-center text-base md:text-lg lg:text-2xl h-8 lg:h-12 tracking-wider rounded-t-xs border dark:bg-[#0D0D0D] bg-stone-500/15 border-b-2 border-b-black/85 dark:border-[#1D4A2E] dark:text-[#EDE7D6] text-black flex justify-between items-center px-2">
 			${date} - ${new Date(year, month - 1, day).toLocaleDateString('pt-BR', { weekday: 'short' })}
 				<span 
@@ -68,7 +72,7 @@ export function buildDateBlock(date: string, times: string[], totalHHMM: string,
 		.slice()
 		.sort()
 		.forEach((time) => {
-			out += `<div class="shrink-0">
+			out += `<div id="time-item-${buildElementId(`${date}-${time}`)}" class="mx-2">
 					 <a href="#" class="link-delete hover:brightness-110 text-teal-900 dark:text-[#F5B11E] clock text-xl md:text-xl lg:text-2xl transition whitespace-nowrap" data-record="${date}&${time}">
 						 •${time}
 					 </a>

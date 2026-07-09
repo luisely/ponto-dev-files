@@ -141,19 +141,20 @@ class UIController {
 			onOptimisticRemove: () => {
 				// Remove only the specific time item, not the entire date block
 				if (record) {
-					const link = tabelaDiv.querySelector(`[data-record="${record}"]`)
-					if (link) {
-						// Get dateBlock reference BEFORE removing, because removing timeItem also removes link from DOM
-						const dateBlock = link.closest('.w-full')
-						const timeItem = link.closest('.mx-2')
-						if (timeItem) {
-							timeItem.remove()
-							// Check if the times container is now empty by counting remaining time items
-							if (dateBlock) {
-								const remainingTimes = dateBlock.querySelectorAll('.mx-2').length
-								if (remainingTimes === 0) {
-									dateBlock.remove()
-								}
+					const [recordDate, recordTime] = record.split('&')
+					const buildElementId = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, '-')
+					const timeItemId = `time-item-${buildElementId(`${recordDate}-${recordTime ?? ''}`)}`
+					const dateBlockId = `date-block-${buildElementId(recordDate)}`
+
+					const dateBlock = document.getElementById(dateBlockId)
+					const timeItem = document.getElementById(timeItemId)
+
+					if (timeItem) {
+						timeItem.remove()
+						if (dateBlock) {
+							const remainingTimes = dateBlock.querySelectorAll('[id^="time-item-"]').length
+							if (remainingTimes === 0) {
+								dateBlock.remove()
 							}
 						}
 					}

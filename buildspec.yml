@@ -19,5 +19,5 @@ phases:
       - echo "Starting sync to S3 - `date`"
       - aws s3 sync dist/ s3://${DEPLOY_BUCKET} --delete
       - aws s3 cp dist/index.html s3://${DEPLOY_BUCKET}/index.html --cache-control "no-store, no-cache, must-revalidate" --content-type "text/html"
-      - aws cloudfront create-invalidation --distribution-id ${CF_ID} --paths "/index.html"
+      - aws cloudfront create-invalidation --distribution-id ${CF_ID} --paths "/*"
       - echo "Sync completed on `date`"

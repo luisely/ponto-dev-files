@@ -72,7 +72,7 @@ export function buildDateBlock(date: string, times: string[], totalHHMM: string,
 		.slice()
 		.sort()
 		.forEach((time) => {
-			out += `<div id="time-item-${buildElementId(`${date}-${time}`)}" class="mx-2">
+			out += `<div id="time-item-${buildElementId(`${date}-${time}`)}" class="mx-1">
 					 <a href="#" class="link-delete hover:brightness-110 text-teal-900 dark:text-[#F5B11E] clock text-xl md:text-xl lg:text-2xl transition whitespace-nowrap" data-record="${date}&${time}">
 						 •${time}
 					 </a>

@@ -19,5 +19,5 @@ jobs:
       with:
         node-version: 22.x
         cache: 'npm'
-    - run: npm ci --omit=dev
-    - run: npm run build:prod
+    - run: npm ci
+    - run: npm run build

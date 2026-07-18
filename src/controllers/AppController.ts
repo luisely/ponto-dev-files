@@ -10,6 +10,7 @@ class AppController {
 		uiController.setDefaultTime()
 		uiController.setNameAndDigitsInputs()
 		uiController.createLucideIcons()
+		uiController.bindEditToggle()
 
 		const { name, digits } = credentials.get()
 		if (name && digits) {

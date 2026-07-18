@@ -22,7 +22,7 @@ export const BUTTON_WITH_LOADING = `<svg class="animate-spin h-5 w-5 mr-2 inline
 export const toastSuccess = (message: string) =>
 	Toastify({
 		text: message,
-		className: 'rounded-md text-sm py-2 px-2',
+		className: 'rounded text-sm py-2 px-2',
 		duration: 3000,
 		gravity: 'bottom',
 		position: 'center',
@@ -36,7 +36,7 @@ export const toastSuccess = (message: string) =>
 export const toastError = (message: string) =>
 	Toastify({
 		text: message,
-		className: 'rounded-md text-sm py-2 px-2',
+		className: 'rounded text-sm py-2 px-2',
 		duration: 3000,
 		gravity: 'bottom',
 		position: 'center',
@@ -46,11 +46,11 @@ export const toastError = (message: string) =>
 export const toastInfo = (message: string) =>
 	Toastify({
 		text: message,
-		className: 'rounded-md text-sm py-2 px-2',
+		className: 'rounded text-sm lg:text-xl py-2 px-2',
 		duration: 3000,
-		gravity: 'top',
+		gravity: 'bottom',
 		position: 'center',
-		backgroundColor: '#f48d2c',
+		backgroundColor: '#f07f16',
 	}).showToast()
 
 export const tabelaDiv = document.getElementById('divPontos') as HTMLDivElement

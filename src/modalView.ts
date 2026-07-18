@@ -21,19 +21,31 @@ export default function buildModal(
 	overlay.id = 'delete-modal-overlay'
 	overlay.className = 'fixed inset-0 flex items-center justify-center bg-black/40 z-9999 backdrop-blur-sm'
 
-	modal.className = 'dark:bg-zinc-900/35 dark:text-white bg-white/65 border border-black/10 backdrop-blur-md rounded-md p-4 shadow-lg text-center w-11/12 max-w-sm'
+	modal.className = 'dark:bg-zinc-900/35 dark:text-white bg-white/65 border border-black/10 backdrop-blur-md rounded-md p-4 shadow-lg text-center lg:w-md max-w-sm lg:max-w-md'
 
-	message.className = 'mb-4 text-lg'
+	message.className = 'mb-4 text-lg lg:text-2xl text-[#54dd89]'
 	// Use custom message if provided, otherwise default to the delete text
-	message.textContent = options?.message ?? `Deseja realmente excluir o registro de ${date} às ${time}?`
+	message.innerHTML = options?.message ?? `Deseja realmente excluir o registro? <p class="text-[#db072a]"> ${date} às ${time}</p>`
 
-	buttons.className = 'flex gap-8 justify-center text-lg w-full'
+	buttons.className = 'flex gap-2 justify-center text-lg w-full'
 
 	cancelBtn.textContent = options?.cancelText ?? 'Cancelar'
-	cancelBtn.className = 'dark:text-white dark:hover:text-black border rounded px-3 py-1 hover:bg-gray-300 dark:hover:bg-white cursor-pointer w-full'
+	cancelBtn.className = `flex items-center justify-centeroi 
+		tracking-wider text-center
+		px-4 py-2 text-lg lg:text-xl text-white
+		rounded hover:bg-[#1D4A2E]/50 
+		border border-[#143420] 
+		cursor-pointer w-1/3 
+		transition-all duration-300 ease-in-out
+	`
 
 	confirmBtn.textContent = options?.confirmText ?? 'Excluir'
-	confirmBtn.className = 'bg-[#ef4444] hover:bg-red-700 px-3 py-1 rounded cursor-pointer w-full'
+	confirmBtn.className = `flex items-center justify-center 
+		tracking-wider text-center 
+		px-4 py-2 text-lg lg:text-xl text-[#db072a]
+		rounded bg-[#6b0516] hover:bg-[#6b0516]/50 
+		hover:border-[#6b0516]/50 cursor-pointer transition-all duration-300 ease-in-out w-2/3
+	`
 
 	buttons.appendChild(cancelBtn)
 	buttons.appendChild(confirmBtn)

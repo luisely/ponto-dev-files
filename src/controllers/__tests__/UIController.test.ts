@@ -36,6 +36,11 @@ beforeEach(() => {
 	tabela.id = 'divPontos'
 	document.body.appendChild(tabela)
 
+	const editToggle = document.createElement('button')
+	editToggle.id = 'toogle-edit'
+	editToggle.innerHTML = '<i data-lucide="lock-open"></i>'
+	document.body.appendChild(editToggle)
+
 	// import after DOM is prepared so conts.ts picks up elements
 	uiController = require('../UIController').uiController
 })
@@ -51,7 +56,7 @@ describe('UIController basic behavior', () => {
 		uiController.isLoading(false)
 		expect(btn.disabled).toBe(false)
 		expect(btn.getAttribute('data-isLoading')).toBe('false')
-		expect(btn.innerHTML).toBe('Registrar')
+		expect(btn.innerHTML).toBe('REGISTRAR')
 	})
 
 	test('setNameAndDigitsInputs reads from localStorage', () => {
@@ -82,7 +87,7 @@ describe('UIController basic behavior', () => {
 		expect(handler).toHaveBeenCalled()
 	})
 
-	test('bindTableDelete calls handler when .link-delete clicked', () => {
+	test('bindTableDelete calls handler only when edit is enabled', () => {
 		const tabela = document.getElementById('divPontos') as HTMLDivElement
 		const link = document.createElement('a')
 		link.className = 'link-delete'
@@ -90,11 +95,24 @@ describe('UIController basic behavior', () => {
 		tabela.appendChild(link)
 
 		const handler = jest.fn()
+		uiController.bindEditToggle()
 		uiController.bindTableDelete(handler)
 
 		// simulate click on child
 		const evt = new MouseEvent('click', { bubbles: true })
 		link.dispatchEvent(evt)
+		expect(handler).not.toHaveBeenCalled()
+
+		const editToggle = document.getElementById('toogle-edit') as HTMLButtonElement
+		editToggle.click()
+		link.dispatchEvent(evt)
 		expect(handler).toHaveBeenCalledWith('r1')
+	})
+
+	test('bindEditToggle updates icon to lock when enabled', () => {
+		const editToggle = document.getElementById('toogle-edit') as HTMLButtonElement
+		uiController.bindEditToggle()
+		editToggle.click()
+		expect(editToggle.innerHTML).toContain('data-lucide="lock"')
 	})
 })

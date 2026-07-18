@@ -1,4 +1,4 @@
-import { createIcons, Eraser, LogOut, Menu } from 'lucide'
+import { createIcons, Eraser, Lock, LockOpen, LogOut, Menu } from 'lucide'
 import { Datepicker } from 'vanillajs-datepicker'
 import {
 	btnRegister,
@@ -23,6 +23,8 @@ import { renderSkeleton } from '../renderSkeleton'
 import pointsController from './PointsController'
 
 class UIController {
+	private editModeEnabled = false
+
 	initDatepicker() {
 		const elem = document.querySelector('input[name="date"]') as HTMLInputElement
 		const datepicker = new Datepicker(elem, {
@@ -90,19 +92,47 @@ class UIController {
 		}
 	}
 
+	bindEditToggle() {
+		const editToggle = document.getElementById('toogle-edit') as HTMLButtonElement | null
+		if (!editToggle) return
+
+		editToggle.addEventListener('click', (event) => {
+			event.preventDefault()
+			this.editModeEnabled = !this.editModeEnabled
+			this.updateEditToggleIcon()
+		})
+	}
+
+	private updateEditToggleIcon() {
+		const editToggle = document.getElementById('toogle-edit') as HTMLButtonElement | null
+		if (!editToggle) return
+
+		editToggle.innerHTML = `<i data-lucide="${this.editModeEnabled ? 'lock' : 'lock-open'}"></i>`
+		createIcons({
+			icons: {
+				Lock,
+				LockOpen,
+			},
+		})
+	}
+
 	bindTableDelete(handler: (record: string | undefined) => void) {
 		tabelaDiv.addEventListener('click', (event) => {
 			const target = event.target as Element | null
 			const linkClicado = target?.closest('.link-delete') as HTMLElement
 			if (linkClicado) {
 				event.preventDefault()
+				if (!this.editModeEnabled) {
+					this.showInfo('Libere a edição para excluir registros.')
+					return
+				}
 				handler(linkClicado.dataset.record)
 			}
 		})
 	}
 
 	showWelcomeMessage(userName: string) {
-		welcomeTitle.textContent = `Bem-vindo, ${userName}!`
+		welcomeTitle.textContent = `Olá, ${userName}!`
 		welcomeMessage.classList.remove('hidden')
 		loginFields.classList.add('hidden')
 	}
@@ -118,6 +148,8 @@ class UIController {
 				Menu,
 				LogOut,
 				Eraser,
+				Lock,
+				LockOpen,
 			},
 		})
 	}

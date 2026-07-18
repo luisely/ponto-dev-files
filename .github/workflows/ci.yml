@@ -5,9 +5,9 @@ name: Ponto CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ]
 
 jobs:
   build:
@@ -19,5 +19,5 @@ jobs:
       with:
         node-version: 22.x
         cache: 'npm'
-    - run: npm ci --omit=dev
-    - run: npm run build:prod
+    - run: npm ci
+    - run: npm run build

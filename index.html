@@ -4,26 +4,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Registrar">
   <meta name="theme-color" content="#030812">
-  <link rel="apple-touch-icon" href="assets/icons/AppIcon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="assets/icons/favicon.ico">
-  <link rel="stylesheet" type="text/css" href="./output.css">
-  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/css/datepicker.min.css">
+  <link rel="apple-touch-icon" href="/icons/AppIcon.png">
+  <link rel="icon" href="/icons/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Madimi+One&family=Radio+Canada+Big:ital,wght@0,400..700;1,400..700&family=SUSE+Mono:ital,wght@0,100..800;1,100..800&display=swap"
-    rel="stylesheet">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Share+Tech+Mono&family=Space+Grotesk:wght@300..700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Madimi+One&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Radio+Canada+Big:ital,wght@0,400..700;1,400..700&family=SUSE+Mono:ital,wght@0,100..800;1,100..800&family=Share+Tech+Mono&family=Space+Grotesk:wght@300..700&display=swap"
     rel="stylesheet">
   <style>
     input {
@@ -66,19 +56,20 @@
         class="w-full mx-auto flex border dark:border-[#1D4A2E] border-black items-center px-1 bg-[#9dfac1] dark:bg-[#0D0D0D]/50 rounded-t-xs">
         <input
           class="h-10 lg:h-12 lg:text-2xl text-center outline-none rounded-md border-r dark:border-[#1D4A2E] border-black text-lg sm:text-base md:text-lg"
-          type="text" id="name" placeholder="Nome" maxlength="20" spellcheck="false" />
+          aria-label="Nome" type="text" id="name" placeholder="Nome" maxlength="20" spellcheck="false" />
         <input id="digits"
           class="w-full lg:h-12 lg:text-2xl rounded-tr text-center dark:border-[#1D4A2E] outline-none border-black text-lg sm:text-base md:text-lg"
-          inputmode="numeric" pattern="[0-9]*" placeholder="pin" maxlength="3" type="password" />
+          aria-label="PIN de acesso" inputmode="numeric" pattern="[0-9]*" placeholder="pin" maxlength="3"
+          type="password" />
       </div>
 
       <div id="dateAndTimeContainer"
         class="w-full mx-auto flex items-center border-b border-l border-r dark:border-[#1D4A2E] bg-[#9dfac1] dark:bg-[#0D0D0D]/50 border-black px-1">
         <input
           class="h-10 lg:h-12 lg:text-2xl border-r dark:border-[#1D4A2E] border-black outline-none text-center text-lg sm:text-base md:text-lg"
-          type="text" id="date" placeholder="Data" name="date" inputmode='none' />
+          aria-label="Data do registro" type="text" id="date" placeholder="Data" name="date" inputmode='none' />
         <input class="w-full px-4 lg:h-12 lg:text-2xl outline-none text-center text-lg sm:text-base md:text-lg"
-          type="time" id="time" placeholder="Hora" />
+          aria-label="Hora do registro" type="time" id="time" placeholder="Hora" />
       </div>
     </form>
 
@@ -98,7 +89,7 @@
     <div id="divPontos" class="w-full md:max-w-xl lg:max-w-2xl text-white mt-2 overflow-y-auto space-y-2">
     </div>
   </div>
-  <script type="module" src="./bundle.js"></script>
+  <script type="module" src="/src/main.ts"></script>
 </body>
 
 </html>

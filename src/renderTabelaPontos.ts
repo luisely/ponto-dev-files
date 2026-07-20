@@ -1,5 +1,6 @@
 import { computeTotalMinutesFromTimes } from './computeTotalMinutesFromTimes'
 import { tabelaDiv } from './conts'
+import { getWeekdayShort, parseDateBR } from './utils/dateUtils'
 import { formatMinutesToHHMM } from './utils/formatMinutesToHHMM'
 
 type Ponto = {
@@ -33,10 +34,8 @@ export function renderTabelaPontos(pontos: Ponto[]) {
 	let html = ''
 	Object.keys(porData)
 		.sort((a, b) => {
-			// Ordena datas mais recentes primeiro
-			const [da, ma, ya] = a.split('/').map(Number)
-			const [db, mb, yb] = b.split('/').map(Number)
-			return new Date(yb, mb - 1, db).getTime() - new Date(ya, ma - 1, da).getTime()
+			// Usa o parseDateBR para converter e ordenar com segurança
+			return parseDateBR(b).getTime() - parseDateBR(a).getTime()
 		})
 		.forEach((date) => {
 			// calcula total do dia
@@ -52,11 +51,13 @@ export function renderTabelaPontos(pontos: Ponto[]) {
 
 // Helper: build HTML block for a single date. Recebe os valores já calculados.
 export function buildDateBlock(date: string, times: string[], totalHHMM: string, isPlus8h?: boolean, isLess8h?: boolean, isOk?: boolean) {
-	const [day, month, year] = date.split('/').map(Number)
+	const dateObj = parseDateBR(date)
+	const weekday = getWeekdayShort(dateObj)
+
 	let out = ''
 	out += `<div id="date-block-${buildElementId(date)}" class="w-full">`
 	out += `<div class="text-center text-base md:text-lg lg:text-2xl h-8 lg:h-12 tracking-wider rounded-t-xs border dark:bg-[#0D0D0D] bg-stone-500/15 border-b-2 border-b-black/85 dark:border-[#1D4A2E] dark:text-[#EDE7D6] text-black flex justify-between items-center px-2">
-			${date} - ${new Date(year, month - 1, day).toLocaleDateString('pt-BR', { weekday: 'short' })}
+			${date} - ${weekday}
 				<span 
 					data-less8h=${isLess8h} 
 					data-plus8h=${isPlus8h} 

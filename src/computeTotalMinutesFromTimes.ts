@@ -1,3 +1,5 @@
+import { diffMinutes } from './utils/dateUtils'
+
 interface TotalMinutesResult {
 	minutes: number
 	incomplete: boolean
@@ -17,12 +19,10 @@ export function computeTotalMinutesFromTimes(times: string[]): TotalMinutesResul
 	const sorted = times.slice().sort()
 	let total = 0
 	for (let i = 0; i + 1 < sorted.length; i += 2) {
-		const [h1, m1] = sorted[i].split(':').map(Number)
-		const [h2, m2] = sorted[i + 1].split(':').map(Number)
-		const minutes1 = h1 * 60 + m1
-		const minutes2 = h2 * 60 + m2
-		if (!Number.isNaN(minutes1) && !Number.isNaN(minutes2) && minutes2 >= minutes1) {
-			total += minutes2 - minutes1
+		const diff = diffMinutes(sorted[i + 1], sorted[i])
+
+		if (!Number.isNaN(diff) && diff >= 0) {
+			total += diff
 		}
 	}
 	const incomplete = sorted.length % 2 === 1

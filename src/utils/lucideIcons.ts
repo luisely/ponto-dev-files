@@ -1,4 +1,4 @@
-import { createIcons, Clock, AlertCircle, Menu, Wifi, WifiOff, LogOut, Eraser } from 'lucide'
+import { AlertCircle, Clock, createIcons, Eraser, LogOut, Menu } from 'lucide'
 
 /**
  * Inicializa todos os ícones Lucide usados na aplicação.
@@ -10,8 +10,6 @@ export function initLucideIcons() {
 			Clock,
 			AlertCircle,
 			Menu,
-			Wifi,
-			WifiOff,
 			LogOut,
 			Eraser,
 		},

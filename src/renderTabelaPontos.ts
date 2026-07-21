@@ -1,7 +1,6 @@
 import { computeTotalMinutesFromTimes } from './computeTotalMinutesFromTimes'
 import { tabelaDiv } from './conts'
 import { formatMinutesToHHMM } from './utils/formatMinutesToHHMM'
-import { offlineQueueService } from './services/OfflineQueueService'
 
 type Ponto = {
 	expireAt?: number
@@ -55,23 +54,17 @@ export function renderTabelaPontos(pontos: Ponto[]) {
 }
 
 // Helper: build HTML block for a single date. Recebe os valores já calculados.
-export function buildDateBlock(
-	date: string,
-	pontos: Ponto[],
-	totalHHMM: string,
-	isPlus8h?: boolean,
-	isLess8h?: boolean,
-	isOk?: boolean
-) {
+export function buildDateBlock(date: string, pontos: Ponto[], totalHHMM: string, isPlus8h?: boolean, isLess8h?: boolean, isOk?: boolean) {
 	const [day, month, year] = date.split('/').map(Number)
 	let out = ''
 	out += `<div id="date-block-${buildElementId(date)}" class="w-full">`
 	out += `<div class="text-center text-base md:text-lg lg:text-2xl h-8 lg:h-12 tracking-wider rounded-t-xs border dark:bg-[#0D0D0D] bg-stone-500/15 border-b-2 border-b-black/85 dark:border-[#1D4A2E] dark:text-[#EDE7D6] text-black flex justify-between items-center px-2">
 			${date} - ${new Date(year, month - 1, day).toLocaleDateString('pt-BR', { weekday: 'short' })}
-				<span 
-					data-less8h=${isLess8h} 
-					data-plus8h=${isPlus8h} 
-					data-ok=${isOk} 
+				<span
+					id="date-total-${buildElementId(date)}"
+					data-less8h=${isLess8h}
+					data-plus8h=${isPlus8h}
+					data-ok=${isOk}
 					class="text-lg sm:text-base md:text-lg lg:text-2xl data-[less8h='true']:dark:text-amber-400 data-[less8h='true']:text-amber-700 data-[plus8h='true']:dark:text-pink-400 data-[plus8h='true']:text-pink-600"
 				>
 					${totalHHMM}${isPlus8h ? '!' : ''}

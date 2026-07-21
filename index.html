@@ -97,13 +97,12 @@
             <div class="text-left">
               <p class="text-xs text-gray-400">Bem-vindo</p>
               <h1 id="welcomeTitle" class="text-xl lg:text-2xl font-bold text-[#54dd89]">Carregando...</h1>
+              <p class="text-xs text-gray-400">
+                Você está <span id="connectionStatus" class="online">online</span>
+              </p>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <!-- Status de conexão -->
-            <span id="connectionStatus" class="cursor-help" title="Status de conexão">
-              <i data-lucide="wifi" class="w-5 h-5"></i>
-            </span>
             <!-- Badge de pendências -->
             <div class="relative">
               <button id="menuBtn" type="button"

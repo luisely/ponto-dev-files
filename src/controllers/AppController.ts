@@ -1,13 +1,13 @@
+import { debugLog } from '../config/debug'
 import { inputDate, inputTime } from '../conts'
+import { openDeleteModal, openMenuModal } from '../modals'
 import { authService } from '../services/AuthService'
 import { batidaPontoService } from '../services/BatidaServices'
 import { offlineQueueService } from '../services/OfflineQueueService'
 import pointsController from './PointsController'
 import uiController from './UIController'
-import { debugLog } from '../config/debug'
 
 class AppController {
-	private syncInterval: number | null = null
 	private lastRefetchTs = 0
 	private readonly REFETCH_THROTTLE_MS = 60_000 // 60s entre refetches ao focar
 
@@ -153,7 +153,7 @@ class AppController {
 				// Verifica se foi registrado offline
 				const pendingCount = offlineQueueService.getPendingCount(currentUser.id)
 				if (pendingCount > 0 && !navigator.onLine) {
-					uiController.showInfo("Registrado offline! Será sincronizado quando voltar online.")
+					uiController.showInfo('Registrado offline! Será sincronizado quando voltar online.')
 				} else {
 					uiController.showSuccess('Registro realizado com sucesso!')
 				}
@@ -167,15 +167,14 @@ class AppController {
 
 		// Delete handler
 		uiController.bindTableDelete((record) => {
-			uiController.showDeleteModal(record, async () => {
+			openDeleteModal(record, async () => {
 				await pointsController.deleteRecord(record)
 			})
 		})
 
 		// Menu
-		uiController.bindMenu(async () => {
-			uiController.showMenuModal()
-			uiController.createLucideIcons()
+		uiController.bindMenu(() => {
+			openMenuModal()
 		})
 	}
 

@@ -1,6 +1,6 @@
 import type { AuthChangeEvent, User } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
 import { debugLog } from '../config/debug'
+import { supabase } from '../lib/supabase'
 
 class AuthService {
 	private userCache: User | null = null

@@ -1,22 +1,8 @@
-import { initLucideIcons } from '../utils/lucideIcons'
 import { Datepicker } from 'vanillajs-datepicker'
-import {
-	btnRegister,
-	BUTTON_WITH_LOADING,
-	inputTime,
-	menuBtn,
-	tabelaDiv,
-	toastError,
-	toastInfo,
-	toastSuccess,
-	welcomeTitle,
-} from '../conts'
-import { credentials } from '../credentials'
-import buildDeleteModal from '../modalView'
-import buildModalMenu from '../modalViewMenu'
+import { BUTTON_WITH_LOADING, btnRegister, inputTime, menuBtn, tabelaDiv, toastError, toastInfo, toastSuccess, welcomeTitle } from '../conts'
 import { renderSkeleton } from '../renderSkeleton'
 import { offlineQueueService } from '../services/OfflineQueueService'
-import pointsController from './PointsController'
+import { initLucideIcons } from '../utils/lucideIcons'
 
 class UIController {
 	initDatepicker() {
@@ -131,80 +117,6 @@ class UIController {
 		initLucideIcons()
 	}
 
-	showDeleteModal(record: string | undefined, onConfirm: (r?: string) => void) {
-		const prev = document.getElementById('delete-modal-overlay')
-		if (prev) prev.remove()
-
-		const { overlay } = buildDeleteModal(record, {
-			onConfirm: async (r?: string) => {
-				try {
-					onConfirm(r)
-				} catch (err) {
-					toastError('Erro ao excluir o registro.')
-					console.error('Error in onConfirm handler:', err)
-				}
-			},
-			onCancel: () => {
-				/* no-op */
-			},
-			onOptimisticRemove: () => {
-				// Remove only the specific time item, not the entire date block
-				if (record) {
-					const [recordDate, recordTime] = record.split('&')
-					const buildElementId = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, '-')
-					const timeItemId = `time-item-${buildElementId(`${recordDate}-${recordTime ?? ''}`)}`
-					const dateBlockId = `date-block-${buildElementId(recordDate)}`
-
-					const dateBlock = document.getElementById(dateBlockId)
-					const timeItem = document.getElementById(timeItemId)
-
-					if (timeItem) {
-						timeItem.remove()
-						if (dateBlock) {
-							const remainingTimes = dateBlock.querySelectorAll('[id^="time-item-"]').length
-							if (remainingTimes === 0) {
-								dateBlock.remove()
-							}
-						}
-					}
-				}
-			},
-		})
-
-		document.body.appendChild(overlay)
-	}
-
-	showMenuModal() {
-		// Remove modal anterior caso exista
-		const prev = document.getElementById('delete-modal-overlay')
-		if (prev) prev.remove()
-
-		const { overlay } = buildModalMenu({
-			message: 'O QUE DESEJA?',
-			deleteAllText: 'APAGAR TUDO',
-			logoutText: 'SAIR',
-			onLogout: async () => {
-				await credentials.signOut()
-				location.reload()
-			},
-			onDeleteAll: async () => {
-				const confirmed = confirm('Todos os registros serão excluídos. Esta ação não pode ser desfeita.')
-				if (confirmed) {
-					await pointsController.deleteAllRecords()
-					credentials.clearCache()
-				}
-			},
-			onOptimisticRemove: () => {
-				/* no-op for now; kept for future hooks */
-			},
-			onCancel: () => {
-				/* no-op for now; kept for future hooks */
-			},
-		})
-
-		document.body.appendChild(overlay)
-	}
-
 	/**
 	 * Atualiza badge de pendências
 	 */
@@ -227,21 +139,16 @@ class UIController {
 	 */
 	updateConnectionStatus(isOnline: boolean) {
 		const statusIndicator = document.getElementById('connectionStatus')
+		if (!statusIndicator) return
 
-		if (statusIndicator) {
-			if (isOnline) {
-				statusIndicator.innerHTML = '<i data-lucide="wifi" class="w-5 h-5"></i>'
-				statusIndicator.title = 'Online'
-				statusIndicator.classList.remove('offline')
-				statusIndicator.classList.add('online')
-			} else {
-				statusIndicator.innerHTML = '<i data-lucide="wifi-off" class="w-5 h-5"></i>'
-				statusIndicator.title = 'Offline'
-				statusIndicator.classList.remove('online')
-				statusIndicator.classList.add('offline')
-			}
-			// Recriar ícones Lucide
-			this.createLucideIcons()
+		if (isOnline) {
+			statusIndicator.textContent = 'online'
+			statusIndicator.classList.remove('offline')
+			statusIndicator.classList.add('online')
+		} else {
+			statusIndicator.textContent = 'offline'
+			statusIndicator.classList.remove('online')
+			statusIndicator.classList.add('offline')
 		}
 	}
 }

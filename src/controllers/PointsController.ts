@@ -1,7 +1,7 @@
 import { atualizarTabelaPontos } from '../atualizarTabelaPontos'
+import { debugLog } from '../config/debug'
 import { batidaPontoService } from '../services/BatidaServices'
 import { uiController } from './UIController'
-import { debugLog } from '../config/debug'
 
 class PointsController {
 	private currentUser: { id: string } | null = null

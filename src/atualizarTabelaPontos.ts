@@ -1,11 +1,11 @@
+import { debugLog } from './config/debug'
 import { tabelaDiv, toastError } from './conts'
 import { renderSkeleton } from './renderSkeleton'
 import { renderTabelaPontos } from './renderTabelaPontos'
-import { batidaPontoService } from './services/BatidaServices'
 import { authService } from './services/AuthService'
+import { batidaPontoService } from './services/BatidaServices'
 import { offlineQueueService } from './services/OfflineQueueService'
 import { initLucideIcons } from './utils/lucideIcons'
-import { debugLog } from './config/debug'
 
 /**
  * Atualiza a tabela de pontos do usuário autenticado.
@@ -94,10 +94,18 @@ export async function atualizarTabelaPontos(user?: { id: string }) {
 	}
 }
 
+type PontoMerged = {
+	id?: string
+	date: string
+	time: string
+	status?: 'pending' | 'syncing' | 'error'
+	usuario_id?: string
+}
+
 /**
  * Mescla pontos da API com pontos pendentes da fila offline
  */
-function mergePontosWithQueue(pontos: any[], usuario_id: string): any[] {
+function mergePontosWithQueue(pontos: PontoMerged[], usuario_id: string): PontoMerged[] {
 	const queue = offlineQueueService.getUserQueue(usuario_id)
 
 	// Converte pontos pendentes para o formato esperado
@@ -113,9 +121,7 @@ function mergePontosWithQueue(pontos: any[], usuario_id: string): any[] {
 	const combined = [...pontos, ...pontosPendentes]
 
 	// Remove duplicatas baseado em date+time
-	const unique = combined.filter(
-		(ponto, index, self) => index === self.findIndex((p) => p.date === ponto.date && p.time === ponto.time)
-	)
+	const unique = combined.filter((ponto, index, self) => index === self.findIndex((p) => p.date === ponto.date && p.time === ponto.time))
 
 	return unique
 }

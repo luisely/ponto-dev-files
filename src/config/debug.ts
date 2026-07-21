@@ -7,7 +7,7 @@ export const DEBUG_MODE = false
 /**
  * Helper para logs condicionais
  */
-export function debugLog(...args: any[]) {
+export function debugLog(...args: unknown[]) {
 	if (DEBUG_MODE) {
 		console.log(...args)
 	}

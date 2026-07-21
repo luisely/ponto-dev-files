@@ -1,7 +1,7 @@
+import { debugLog } from '../config/debug'
 import { supabase } from '../lib/supabase'
 import { authService } from './AuthService'
-import { offlineQueueService, type PontoPendente } from './OfflineQueueService'
-import { debugLog } from '../config/debug'
+import { offlineQueueService } from './OfflineQueueService'
 
 class BatidaServices {
 	/**
@@ -62,12 +62,7 @@ class BatidaServices {
 		const user = await authService.getUser()
 		if (!user) throw new Error('Usuário não autenticado')
 
-		const { data, error } = await supabase
-			.from('pontos')
-			.select('*')
-			.eq('usuario_id', user.id)
-			.order('data', { ascending: false })
-			.order('hora', { ascending: false })
+		const { data, error } = await supabase.from('pontos').select('*').eq('usuario_id', user.id).order('data', { ascending: false }).order('hora', { ascending: false })
 
 		if (error) throw error
 		return data || []
@@ -90,12 +85,7 @@ class BatidaServices {
 		// Garantir formato HH:mm:ss
 		const timeFormatted = time.length === 5 ? `${time}:00` : time
 
-		const { error } = await supabase
-			.from('pontos')
-			.delete()
-			.eq('usuario_id', user.id)
-			.eq('data', dateISO)
-			.eq('hora', timeFormatted)
+		const { error } = await supabase.from('pontos').delete().eq('usuario_id', user.id).eq('data', dateISO).eq('hora', timeFormatted)
 
 		if (error) throw error
 	}
@@ -173,11 +163,7 @@ class BatidaServices {
 				if (canRetry) {
 					offlineQueueService.updateStatus(ponto.id, 'pending', 'Erro ao sincronizar. Tentando novamente...')
 				} else {
-					offlineQueueService.updateStatus(
-						ponto.id,
-						'error',
-						'Não foi possível sincronizar após várias tentativas'
-					)
+					offlineQueueService.updateStatus(ponto.id, 'error', 'Não foi possível sincronizar após várias tentativas')
 				}
 
 				failed++

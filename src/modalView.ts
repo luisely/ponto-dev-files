@@ -34,17 +34,20 @@ export type ModalOptions = {
 }
 
 const VARIANT_CLASSES: Record<ModalButtonVariant, string> = {
-	neutral: 'dark:text-white dark:hover:text-black border rounded px-3 py-1 hover:bg-gray-300 dark:hover:bg-white cursor-pointer w-full',
-	danger: 'bg-[#ef4444] hover:bg-red-700 text-white px-3 py-1 rounded cursor-pointer w-full',
+	neutral:
+		'border border-[#1D4A2E] rounded-lg px-4 py-2 text-[#EDE7D6] hover:bg-[#1D4A2E]/50 cursor-pointer w-full transition-all duration-200',
+	danger:
+		'border border-[#6b0516] rounded-lg px-4 py-2 text-[#ef4444] hover:bg-[#6b0516]/50 cursor-pointer w-full transition-all duration-200',
 	menuNeutral:
-		'flex items-center justify-center gap-2 tracking-wider text-center px-4 py-2 text-lg lg:text-xl text-white hover:bg-[#1D4A2E]/50 border border-[#143420] cursor-pointer w-full transition-all duration-300 ease-in-out',
+		'flex items-center justify-center gap-2 tracking-wider text-center px-4 py-2 text-lg lg:text-xl text-[#EDE7D6] hover:bg-[#1D4A2E]/50 border border-[#1D4A2E] rounded-lg cursor-pointer w-full transition-all duration-200',
 	menuDanger:
-		'flex items-center justify-center gap-2 tracking-wider text-center px-4 py-2 text-lg lg:text-xl text-[#e21919] hover:bg-[#6b0516]/50 border-t border border-[#143420] hover:border-[#6b0516]/50 cursor-pointer transition-all duration-300 ease-in-out w-full',
+		'flex items-center justify-center gap-2 tracking-wider text-center px-4 py-2 text-lg lg:text-xl text-[#ef4444] hover:bg-[#6b0516]/50 border border-[#6b0516] rounded-lg cursor-pointer w-full transition-all duration-200',
 }
 
 const SPINNER_HTML = `<div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent inline-block"></div>`
 
-const MODAL_CONTENT_CLASS = 'dark:bg-zinc-900/35 dark:text-white bg-white/65 border border-black/10 backdrop-blur-md rounded-md p-4 shadow-lg text-center w-11/12 max-w-sm'
+const MODAL_CONTENT_CLASS =
+	'bg-[#0D0D0D]/50 backdrop-blur-md border border-[#1D4A2E] rounded-lg p-5 shadow-lg text-center w-11/12 max-w-sm text-[#EDE7D6]'
 
 function ensureSpinnerKeyframes() {
 	if (document.querySelector('style[data-spinner-style]')) return
@@ -69,11 +72,11 @@ function renderButton(btn: ModalButton, index: number): string {
 
 function renderContent(opts: ModalOptions): string {
 	const layout = opts.layout ?? 'row'
-	const buttonsClass = layout === 'column' ? 'flex flex-col text-center gap-8 justify-center text-lg w-full' : 'flex gap-8 justify-center text-lg w-full'
+	const buttonsClass = layout === 'column' ? 'flex flex-col gap-3 w-full' : 'flex gap-3 w-full'
 
-	const titleHTML = opts.title ? `<div class="mb-4 text-2xl text-[#54dd89] tracking-wider">${esc(opts.title)}</div>` : ''
-	const messageHTML = opts.message ? `<div class="mb-4 text-lg">${esc(opts.message)}</div>` : ''
-	const separatorHTML = opts.showSeparator ? `<div class="border-t border-2 border-[#143420] my-4"></div>` : ''
+	const titleHTML = opts.title ? `<div class="mb-4 text-2xl text-[#54dd89] tracking-wider font-bold">${esc(opts.title)}</div>` : ''
+	const messageHTML = opts.message ? `<div class="mb-4 text-base text-[#EDE7D6]">${esc(opts.message)}</div>` : ''
+	const separatorHTML = opts.showSeparator ? `<div class="border-t border-[#1D4A2E] my-4"></div>` : ''
 
 	return `
 		<div class="${MODAL_CONTENT_CLASS}">
@@ -115,8 +118,17 @@ export default function buildModal(options: ModalOptions) {
 
 	dialog.showModal()
 
-	// Remove do DOM depois de fechar (por qualquer motivo)
-	dialog.addEventListener('close', () => dialog.remove())
+	// Aplica blur no conteúdo por trás do modal
+	document.body.style.overflow = 'hidden'
+	const mainContent = document.getElementById('mainScreen') || document.getElementById('loginScreen')
+	if (mainContent) mainContent.style.filter = 'blur(4px)'
+
+	// Remove do DOM e restaura blur depois de fechar
+	dialog.addEventListener('close', () => {
+		dialog.remove()
+		if (mainContent) mainContent.style.filter = ''
+		document.body.style.overflow = ''
+	})
 
 	// Esc: onDismiss é chamado, dialog fecha sozinho após o evento cancel
 	dialog.addEventListener('cancel', () => {

@@ -21,14 +21,14 @@ import { initLucideIcons } from './utils/lucideIcons'
  *
  * @param user - Usuário já obtido (evita lookup no AuthService).
  */
-export async function atualizarTabelaPontos(user?: { id: string }) {
+export async function atualizarTabelaPontos(user?: { id: string }, force = false) {
 	debugLog('🔄 [atualizarTabelaPontos] Função chamada')
 
 	const resolvedUser = await resolveUser(user)
 	if (!resolvedUser) return
 
 	const hadCache = renderFromCache(resolvedUser.id)
-	await fetchAndRefresh(resolvedUser.id, hadCache)
+	await fetchAndRefresh(resolvedUser.id, hadCache, force)
 }
 
 /**
@@ -75,15 +75,41 @@ function renderFromCache(userId: string): boolean {
 }
 
 /**
+ * Throttle: pula o fetch se o último request foi há menos de FETCH_COOLDOWN_MS.
+ * Evita spam de requisições em caso de F5 repetido.
+ * Persistido em localStorage pra funcionar entre reloads.
+ */
+const FETCH_COOLDOWN_MS = 10_000 // 10 segundos
+const FETCH_TS_KEY = 'pontos_last_fetch'
+
+function shouldSkipFetch(): boolean {
+	const lastFetch = Number(localStorage.getItem(FETCH_TS_KEY) || '0')
+	return Date.now() - lastFetch < FETCH_COOLDOWN_MS
+}
+
+function markFetched(): void {
+	localStorage.setItem(FETCH_TS_KEY, String(Date.now()))
+}
+
+/**
  * Busca pontos atualizados da API, mescla com a fila offline e atualiza o cache.
  * Em caso de falha, mantém o cache (modo offline).
+ * Inclui throttle: pula fetch se última busca foi há menos de 10s (evita spam de F5).
+ * @param force - se true, ignora o throttle (usado após registrar/excluir pontos)
  */
-async function fetchAndRefresh(userId: string, hadCache: boolean): Promise<void> {
+async function fetchAndRefresh(userId: string, hadCache: boolean, force = false): Promise<void> {
+	if (!force && shouldSkipFetch()) {
+		debugLog('⏭️ [atualizarTabelaPontos] Fetch pulado (throttle)')
+		return
+	}
+
 	try {
 		debugLog('🌐 [atualizarTabelaPontos] Buscando pontos da API...')
-		const raw = await batidaPontoService.get()
+		const raw = await batidaPontoService.get(userId)
 		const pontosFormatados = formatPontos(raw)
 		const newData = JSON.stringify(pontosFormatados)
+
+		markFetched()
 
 		// Só atualiza UI e cache se algo mudou
 		if (pontosCache.read(userId) === newData) return

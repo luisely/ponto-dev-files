@@ -41,8 +41,9 @@ export function openDeleteModal(record: string | undefined, onConfirm: (r?: stri
 
 /**
  * Abre o modal do menu com opções SAIR e APAGAR TUDO.
+ * @param userId - ID do usuário atual (evita fetch de rede)
  */
-export function openMenuModal() {
+export function openMenuModal(userId?: string | null) {
 	closePreviousModal()
 
 	buildModal({
@@ -69,8 +70,7 @@ export function openMenuModal() {
 					const confirmed = confirm('Todos os registros serão excluídos. Esta ação não pode ser desfeita.')
 					if (!confirmed) return
 
-					const ok = await pointsController.deleteAllRecords()
-					const user = await authService.getUser()
+					const ok = await pointsController.deleteAllRecords(userId ?? undefined)
 
 					if (ok) {
 						pontosCache.clear()
@@ -79,7 +79,7 @@ export function openMenuModal() {
 						toastError('Erro ao excluir.')
 					}
 
-					if (user) await pointsController.initForUser({ id: user.id })
+					if (userId) await pointsController.initForUser({ id: userId }, true)
 				},
 			},
 		],

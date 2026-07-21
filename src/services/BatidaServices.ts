@@ -55,14 +55,19 @@ class BatidaServices {
 	}
 
 	/**
-	 * Busca todos os pontos do usuário autenticado
+	 * Busca todos os pontos do usuário.
+	 * @param userId - ID do usuário (opcional, busca se não fornecido)
 	 */
-	async get() {
+	async get(userId?: string) {
 		debugLog('📡 [BatidaServices] get() chamado')
-		const user = await authService.getUser()
-		if (!user) throw new Error('Usuário não autenticado')
 
-		const { data, error } = await supabase.from('pontos').select('*').eq('usuario_id', user.id).order('data', { ascending: false }).order('hora', { ascending: false })
+		if (!userId) {
+			const user = await authService.getUser()
+			if (!user) throw new Error('Usuário não autenticado')
+			userId = user.id
+		}
+
+		const { data, error } = await supabase.from('pontos').select('*').eq('usuario_id', userId).order('data', { ascending: false }).order('hora', { ascending: false })
 
 		if (error) throw error
 		return data || []
@@ -71,12 +76,16 @@ class BatidaServices {
 	/**
 	 * Remove um registro específico
 	 * @param record - String no formato "dd/mm/yyyy&HH:mm"
+	 * @param userId - ID do usuário (opcional, busca se não fornecido)
 	 */
-	async remove(record: string | undefined) {
+	async remove(record: string | undefined, userId?: string) {
 		if (!record) throw new Error('Registro inválido')
 
-		const user = await authService.getUser()
-		if (!user) throw new Error('Usuário não autenticado')
+		if (!userId) {
+			const user = await authService.getUser()
+			if (!user) throw new Error('Usuário não autenticado')
+			userId = user.id
+		}
 
 		const [date, time] = record.split('&')
 		const [day, month, year] = date.split('/')
@@ -85,19 +94,23 @@ class BatidaServices {
 		// Garantir formato HH:mm:ss
 		const timeFormatted = time.length === 5 ? `${time}:00` : time
 
-		const { error } = await supabase.from('pontos').delete().eq('usuario_id', user.id).eq('data', dateISO).eq('hora', timeFormatted)
+		const { error } = await supabase.from('pontos').delete().eq('usuario_id', userId).eq('data', dateISO).eq('hora', timeFormatted)
 
 		if (error) throw error
 	}
 
 	/**
-	 * Remove todos os registros do usuário autenticado
+	 * Remove todos os registros do usuário
+	 * @param userId - ID do usuário (opcional, busca se não fornecido)
 	 */
-	async removeAll() {
-		const user = await authService.getUser()
-		if (!user) throw new Error('Usuário não autenticado')
+	async removeAll(userId?: string) {
+		if (!userId) {
+			const user = await authService.getUser()
+			if (!user) throw new Error('Usuário não autenticado')
+			userId = user.id
+		}
 
-		const { error } = await supabase.from('pontos').delete().eq('usuario_id', user.id)
+		const { error } = await supabase.from('pontos').delete().eq('usuario_id', userId)
 
 		if (error) throw error
 	}

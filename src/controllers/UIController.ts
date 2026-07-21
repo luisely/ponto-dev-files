@@ -1,9 +1,23 @@
 import { Datepicker } from 'vanillajs-datepicker'
-import { BUTTON_WITH_LOADING, btnRegister, inputTime, menuBtn, tabelaDiv, toastError, toastInfo, toastSuccess, welcomeTitle } from '../conts'
-import { renderSkeleton } from '../renderSkeleton'
+import { btnRegister, inputTime, menuBtn, tabelaDiv } from '../dom'
 import { offlineQueueService } from '../services/OfflineQueueService'
-import { initLucideIcons } from '../utils/lucideIcons'
 
+/**
+ * HTML do spinner exibido no botão de registrar enquanto processa a requisição.
+ */
+const BUTTON_WITH_LOADING = `<svg class="animate-spin h-5 w-5 mr-2 inline-block dark:text-[#F5B11E] text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" role="img" aria-label="Carregando">
+	<title>Carregando</title>
+	<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+	<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+</svg>`
+
+/**
+ * Concentra interações da UI: init de widgets, binds de eventos e estados
+ * pontuais (loading do botão, badge de pendências, status de conexão).
+ *
+ * Feedbacks (toasts), controle de telas e ícones do Lucide ficam em módulos
+ * dedicados — este arquivo evita virar um "God object".
+ */
 class UIController {
 	initDatepicker() {
 		const elem = document.querySelector('input[name="date"]') as HTMLInputElement
@@ -23,22 +37,6 @@ class UIController {
 		})
 	}
 
-	renderSkeleton() {
-		renderSkeleton()
-	}
-
-	showSuccess(msg: string) {
-		toastSuccess(msg)
-	}
-
-	showError(msg: string) {
-		toastError(msg)
-	}
-
-	showInfo(msg: string) {
-		toastInfo(msg)
-	}
-
 	bindGoogleLogin(handler: () => void) {
 		const googleLoginBtn = document.getElementById('googleLoginBtn')
 		if (googleLoginBtn) {
@@ -54,6 +52,17 @@ class UIController {
 		menuBtn.addEventListener('click', handler)
 	}
 
+	bindTableDelete(handler: (record: string | undefined) => void) {
+		tabelaDiv.addEventListener('click', (event) => {
+			const target = event.target as Element | null
+			const linkClicado = target?.closest('.link-delete') as HTMLElement
+			if (linkClicado) {
+				event.preventDefault()
+				handler(linkClicado.dataset.record)
+			}
+		})
+	}
+
 	isLoading(isLoading: boolean) {
 		if (isLoading) {
 			btnRegister.innerHTML = BUTTON_WITH_LOADING
@@ -66,77 +75,19 @@ class UIController {
 		}
 	}
 
-	bindTableDelete(handler: (record: string | undefined) => void) {
-		tabelaDiv.addEventListener('click', (event) => {
-			const target = event.target as Element | null
-			const linkClicado = target?.closest('.link-delete') as HTMLElement
-			if (linkClicado) {
-				event.preventDefault()
-				handler(linkClicado.dataset.record)
-			}
-		})
-	}
-
-	showWelcomeMessage(userName: string) {
-		welcomeTitle.textContent = userName
-
-		// Esconder loading e login, mostrar tela principal
-		const loadingScreen = document.getElementById('loadingScreen')
-		const loginScreen = document.getElementById('loginScreen')
-		const mainScreen = document.getElementById('mainScreen')
-
-		if (loadingScreen) loadingScreen.classList.add('hidden')
-		if (loginScreen) {
-			loginScreen.classList.add('hidden')
-			loginScreen.classList.remove('flex')
-		}
-		if (mainScreen) {
-			mainScreen.classList.remove('hidden')
-			mainScreen.classList.add('flex')
-		}
-	}
-
-	hideWelcomeMessage() {
-		// Esconder loading e main, mostrar tela de login
-		const loadingScreen = document.getElementById('loadingScreen')
-		const loginScreen = document.getElementById('loginScreen')
-		const mainScreen = document.getElementById('mainScreen')
-
-		if (loadingScreen) loadingScreen.classList.add('hidden')
-		if (loginScreen) {
-			loginScreen.classList.remove('hidden')
-			loginScreen.classList.add('flex')
-		}
-		if (mainScreen) {
-			mainScreen.classList.add('hidden')
-			mainScreen.classList.remove('flex')
-		}
-	}
-
-	createLucideIcons() {
-		initLucideIcons()
-	}
-
-	/**
-	 * Atualiza badge de pendências
-	 */
 	updatePendingBadge(usuario_id: string) {
 		const count = offlineQueueService.getPendingCount(usuario_id)
 		const badge = document.getElementById('pendingBadge')
+		if (!badge) return
 
-		if (badge) {
-			if (count > 0) {
-				badge.textContent = count.toString()
-				badge.classList.remove('hidden')
-			} else {
-				badge.classList.add('hidden')
-			}
+		if (count > 0) {
+			badge.textContent = count.toString()
+			badge.classList.remove('hidden')
+		} else {
+			badge.classList.add('hidden')
 		}
 	}
 
-	/**
-	 * Atualiza status de conexão
-	 */
 	updateConnectionStatus(isOnline: boolean) {
 		const statusIndicator = document.getElementById('connectionStatus')
 		if (!statusIndicator) return

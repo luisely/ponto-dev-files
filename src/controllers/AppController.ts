@@ -1,187 +1,179 @@
 import { debugLog } from '../config/debug'
-import { inputDate, inputTime } from '../conts'
+import { inputDate, inputTime } from '../dom'
 import { openDeleteModal, openMenuModal } from '../modals'
 import { authService } from '../services/AuthService'
 import { batidaPontoService } from '../services/BatidaServices'
 import { offlineQueueService } from '../services/OfflineQueueService'
+import { showLoginScreen, showMainScreen } from '../ui/screens'
+import { toastError, toastInfo, toastSuccess } from '../ui/toasts'
+import { initLucideIcons } from '../utils/lucideIcons'
 import pointsController from './PointsController'
 import uiController from './UIController'
 
 class AppController {
 	private lastRefetchTs = 0
-	private readonly REFETCH_THROTTLE_MS = 60_000 // 60s entre refetches ao focar
+	private readonly REFETCH_THROTTLE_MS = 60_000
+
+	/**
+	 * Último userId já processado no fluxo de autenticação. Usado só para
+	 * dedupe do SIGNED_IN duplicado que o Supabase dispara logo após
+	 * getSession().
+	 */
+	private lastProcessedUserId: string | null = null
 
 	async init() {
 		debugLog('🎬 [AppController] init() chamado')
-		// UI init
+
 		uiController.initDatepicker()
 		uiController.setDefaultTime()
-		uiController.createLucideIcons()
+		initLucideIcons()
 
-		// Setup online/offline listeners
 		this.setupConnectionListeners()
-
-		// Setup visibility listener (refetch ao voltar pra aba)
 		this.setupVisibilityListener()
 
-		// Verificar sessão existente IMEDIATAMENTE (antes do listener)
+		await this.processInitialSession()
+
+		this.setupAuthListener()
+		this.setupUiHandlers()
+	}
+
+	private async processInitialSession() {
 		try {
 			debugLog('🔍 [AppController] Verificando sessão inicial...')
 			const session = await authService.getSession()
-			if (session?.user) {
-				debugLog('✅ [AppController] Sessão encontrada, processando...')
-				// Define o usuário no PointsController (evita múltiplas chamadas getUser)
-				pointsController.setUser({ id: session.user.id })
-
-				// Usuário já está autenticado, mostrar tela principal
-				const userName = session.user.user_metadata?.full_name || session.user.email || 'Usuário'
-				uiController.showWelcomeMessage(userName)
-
-				// Garantir que o usuário existe na tabela usuarios
-				try {
-					await authService.ensureUserProfile(session.user)
-				} catch (error) {
-					console.error('Erro ao criar perfil:', error)
-				}
-
-				// Carregar pontos do usuário
-				await pointsController.initForUser()
-
-				// Processar fila pendente se estiver online
-				if (navigator.onLine) {
-					await this.syncOfflineQueue()
-				}
-
-				// Atualizar badge de pendências
-				uiController.updatePendingBadge(session.user.id)
-			} else {
-				// Usuário não autenticado, mostrar tela de login
-				pointsController.setUser(null)
-				uiController.hideWelcomeMessage()
+			if (!session?.user) {
+				this.lastProcessedUserId = null
+				showLoginScreen()
+				return
 			}
+
+			debugLog('✅ [AppController] Sessão encontrada, processando...')
+			this.lastProcessedUserId = session.user.id
+
+			const userName = session.user.user_metadata?.full_name || session.user.email || 'Usuário'
+			showMainScreen(userName)
+
+			try {
+				await authService.ensureUserProfile(session.user)
+			} catch (error) {
+				console.error('Erro ao criar perfil:', error)
+			}
+
+			await pointsController.initForUser({ id: session.user.id })
+
+			if (navigator.onLine) {
+				await this.syncOfflineQueue()
+			}
+
+			uiController.updatePendingBadge(session.user.id)
 		} catch (error) {
 			console.error('Erro ao verificar sessão inicial:', error)
-			// Em modo offline, tenta usar cache da sessão
-			pointsController.setUser(null)
-			uiController.hideWelcomeMessage()
+			this.lastProcessedUserId = null
+			showLoginScreen()
 		}
+	}
 
-		// Observar mudanças futuras de autenticação.
-		// Só reagimos a SIGNED_IN e SIGNED_OUT. Ignoramos TOKEN_REFRESHED,
-		// INITIAL_SESSION (já processado acima via getSession) e USER_UPDATED
-		// para evitar refetch desnecessário da API a cada renovação de token.
+	private setupAuthListener() {
+		// Só reagimos a SIGNED_IN/OUT. TOKEN_REFRESHED, INITIAL_SESSION e
+		// USER_UPDATED são ignorados para evitar refetch a cada renovação
+		// silenciosa de token.
 		authService.onAuthStateChange(async (event, user) => {
 			debugLog(`🔔 [AppController] onAuthStateChange: ${event}`)
 
-			if (event !== 'SIGNED_IN' && event !== 'SIGNED_OUT') {
-				debugLog(`⏭️ [AppController] Ignorando evento ${event}`)
-				return
-			}
+			if (event !== 'SIGNED_IN' && event !== 'SIGNED_OUT') return
 
-			// Se SIGNED_IN e o usuário já é o mesmo já processado, pula
-			// (evita duplicação com o processamento inicial via getSession)
-			const currentUserId = pointsController.getUser()?.id
-			if (event === 'SIGNED_IN' && user && user.id === currentUserId) {
-				debugLog(`⏭️ [AppController] Usuário ${user.id} já processado, pulando`)
-				return
-			}
+			// Evita duplicação com o processInitialSession
+			if (event === 'SIGNED_IN' && user && user.id === this.lastProcessedUserId) return
 
-			debugLog('✅ [AppController] Processando mudança de autenticação...')
 			if (user) {
-				// Define o usuário no PointsController
-				pointsController.setUser({ id: user.id })
+				this.lastProcessedUserId = user.id
 
-				// Garantir que o usuário existe na tabela usuarios
 				try {
 					await authService.ensureUserProfile(user)
 				} catch (error) {
 					console.error('Erro ao criar perfil:', error)
 				}
 
-				// Mostrar mensagem de boas-vindas
 				const userName = user.user_metadata?.full_name || user.email || 'Usuário'
-				uiController.showWelcomeMessage(userName)
+				showMainScreen(userName)
 
-				// Carregar pontos do usuário
-				await pointsController.initForUser()
-
-				// Atualizar badge de pendências
+				await pointsController.initForUser({ id: user.id })
 				uiController.updatePendingBadge(user.id)
 			} else {
-				// Usuário não autenticado
-				pointsController.setUser(null)
-				uiController.hideWelcomeMessage()
+				this.lastProcessedUserId = null
+				showLoginScreen()
 			}
 		})
+	}
 
-		// Botão de login com Google
+	private setupUiHandlers() {
 		uiController.bindGoogleLogin(async () => {
 			try {
 				uiController.isLoading(true)
 				await authService.signInWithGoogle()
 			} catch (error) {
 				console.error('Erro ao fazer login:', error)
-				uiController.showError('Erro ao fazer login com Google')
+				toastError('Erro ao fazer login com Google')
 				uiController.isLoading(false)
 			}
 		})
 
-		// Register button
 		uiController.bindRegister(async (e?: Event) => {
 			e?.preventDefault()
 
-			// Verifica se tem usuário no PointsController
-			const currentUser = pointsController.getUser()
+			const currentUser = await authService.getUser()
 			if (!currentUser) {
-				uiController.showInfo('Faça login para registrar pontos')
+				toastInfo('Faça login para registrar pontos')
 				return
 			}
 
 			const date = inputDate.value
 			const time = inputTime.value
-
 			if (!date || !time) {
-				uiController.showInfo('Preencha a data e hora.')
+				toastInfo('Preencha a data e hora.')
 				return
 			}
 
 			uiController.isLoading(true)
-			const success = await pointsController.registerPoint(date, time)
+			const success = await pointsController.registerPoint(currentUser.id, date, time)
 			uiController.isLoading(false)
 
-			if (success) {
-				// Verifica se foi registrado offline
-				const pendingCount = offlineQueueService.getPendingCount(currentUser.id)
-				if (pendingCount > 0 && !navigator.onLine) {
-					uiController.showInfo('Registrado offline! Será sincronizado quando voltar online.')
-				} else {
-					uiController.showSuccess('Registro realizado com sucesso!')
-				}
-
-				// Atualiza badge
-				uiController.updatePendingBadge(currentUser.id)
-			} else {
-				uiController.showError('Erro ao registrar. Tente novamente.')
+			if (!success) {
+				toastError('Erro ao registrar. Tente novamente.')
+				return
 			}
+
+			const pendingCount = offlineQueueService.getPendingCount(currentUser.id)
+			if (pendingCount > 0 && !navigator.onLine) {
+				toastInfo('Registrado offline! Será sincronizado quando voltar online.')
+			} else {
+				toastSuccess('Registro realizado com sucesso!')
+			}
+			uiController.updatePendingBadge(currentUser.id)
 		})
 
-		// Delete handler
 		uiController.bindTableDelete((record) => {
 			openDeleteModal(record, async () => {
-				await pointsController.deleteRecord(record)
+				const ok = await pointsController.deleteRecord(record)
+				if (ok) {
+					toastSuccess('Registro excluído com sucesso!')
+					return
+				}
+				toastError('Erro ao excluir o registro.')
+				// Restaura UI (desfaz o optimistic remove)
+				const user = await authService.getUser()
+				if (user) await pointsController.initForUser({ id: user.id })
 			})
 		})
 
-		// Menu
 		uiController.bindMenu(() => {
 			openMenuModal()
 		})
 	}
 
 	/**
-	 * Configura listener de visibilidade da aba.
-	 * Quando o usuário volta pra aba, atualiza os pontos (com throttle).
-	 * Não roda o pipeline inteiro — só refetch + badge.
+	 * Ao voltar pra aba, atualiza os pontos (com throttle). Não roda o
+	 * pipeline inteiro — só refetch + badge.
 	 */
 	private setupVisibilityListener() {
 		document.addEventListener('visibilitychange', () => {
@@ -191,7 +183,7 @@ class AppController {
 	}
 
 	private async refetchOnFocus() {
-		const user = pointsController.getUser()
+		const user = await authService.getUser()
 		if (!user) return
 		if (!navigator.onLine) return
 
@@ -204,23 +196,19 @@ class AppController {
 
 		debugLog('🔄 [AppController] Refetch em foco...')
 		try {
-			await pointsController.initForUser()
+			await pointsController.initForUser({ id: user.id })
 			uiController.updatePendingBadge(user.id)
 		} catch (error) {
 			console.error('Erro no refetch em foco:', error)
 		}
 	}
 
-	/**
-	 * Configura listeners de online/offline
-	 */
 	private setupConnectionListeners() {
 		window.addEventListener('online', async () => {
 			console.log('🌐 Online detectado!')
-			uiController.showSuccess('Conexão restabelecida. Sincronizando...')
+			toastSuccess('Conexão restabelecida. Sincronizando...')
 			uiController.updateConnectionStatus(true)
 
-			// Aguarda um pouco para garantir conexão estável
 			setTimeout(async () => {
 				await this.syncOfflineQueue()
 			}, 1000)
@@ -228,38 +216,30 @@ class AppController {
 
 		window.addEventListener('offline', () => {
 			console.log('📵 Offline detectado!')
-			uiController.showInfo('Você está offline. Registros serão sincronizados quando voltar online.')
+			toastInfo('Você está offline. Registros serão sincronizados quando voltar online.')
 			uiController.updateConnectionStatus(false)
 		})
 
-		// Atualiza status inicial
 		uiController.updateConnectionStatus(navigator.onLine)
 	}
 
-	/**
-	 * Processa fila de pontos pendentes
-	 */
 	private async syncOfflineQueue() {
 		try {
 			const result = await batidaPontoService.processQueue()
 
 			if (result.success > 0) {
-				uiController.showSuccess(`✓ ${result.success} registro(s) sincronizado(s)!`)
+				toastSuccess(`✓ ${result.success} registro(s) sincronizado(s)!`)
 
-				// Recarrega pontos
-				await pointsController.initForUser()
-
-				// Atualiza badge
 				const user = await authService.getUser()
 				if (user) {
+					await pointsController.initForUser({ id: user.id })
 					uiController.updatePendingBadge(user.id)
 				}
 			}
 
 			if (result.failed > 0) {
-				uiController.showError(`⚠️ ${result.failed} registro(s) falharam. Tentando novamente em 30s...`)
+				toastError(`⚠️ ${result.failed} registro(s) falharam. Tentando novamente em 30s...`)
 
-				// Retry após 30 segundos
 				setTimeout(async () => {
 					if (navigator.onLine) {
 						await this.syncOfflineQueue()

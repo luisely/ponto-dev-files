@@ -1,30 +1,23 @@
 import { atualizarTabelaPontos } from '../atualizarTabelaPontos'
 import { debugLog } from '../config/debug'
 import { batidaPontoService } from '../services/BatidaServices'
-import { uiController } from './UIController'
 
 class PointsController {
-	private currentUser: { id: string } | null = null
-
-	setUser(user: { id: string } | null) {
-		this.currentUser = user
-	}
-
-	getUser() {
-		return this.currentUser
-	}
-
-	async initForUser() {
+	/**
+	 * Recarrega a tabela de pontos. Se `user` for passado, evita o lookup no AuthService.
+	 */
+	async initForUser(user?: { id: string }) {
 		debugLog('📊 [PointsController] initForUser chamado')
-		await atualizarTabelaPontos(this.currentUser || undefined)
+		await atualizarTabelaPontos(user)
 	}
 
-	async registerPoint(date: string, time: string): Promise<boolean> {
+	/**
+	 * Registra uma nova batida. Retorna true em sucesso, false em falha.
+	 */
+	async registerPoint(userId: string, date: string, time: string): Promise<boolean> {
 		try {
-			// Passa o user_id para evitar requisição em modo offline
-			const user_id = this.currentUser?.id
-			await batidaPontoService.add(date, time, user_id)
-			await this.initForUser()
+			await batidaPontoService.add(date, time, userId)
+			await this.initForUser({ id: userId })
 			return true
 		} catch (error) {
 			console.error('Erro ao registrar ponto:', error)
@@ -32,26 +25,31 @@ class PointsController {
 		}
 	}
 
-	async deleteRecord(record: string | undefined) {
+	/**
+	 * Remove uma batida específica. Retorna true em sucesso, false em falha.
+	 * Não faz refetch — quem chama decide se precisa restaurar a UI.
+	 */
+	async deleteRecord(record: string | undefined): Promise<boolean> {
 		try {
 			await batidaPontoService.remove(record)
-			uiController.showSuccess('Registro excluído com sucesso!')
+			return true
 		} catch (error) {
-			uiController.showError('Erro ao excluir o registro.')
 			console.error('Erro ao excluir registro:', error)
-			await this.initForUser()
+			return false
 		}
 	}
 
-	async deleteAllRecords() {
+	/**
+	 * Remove todas as batidas do usuário. Retorna true em sucesso, false em falha.
+	 * Não faz refetch — quem chama decide se precisa recarregar.
+	 */
+	async deleteAllRecords(): Promise<boolean> {
 		try {
 			await batidaPontoService.removeAll()
-			uiController.showSuccess('Todos os registros excluídos com sucesso!')
-			await this.initForUser()
+			return true
 		} catch (error) {
-			uiController.showError('Erro ao excluir.')
 			console.error('Erro ao excluir registros:', error)
-			await this.initForUser()
+			return false
 		}
 	}
 }

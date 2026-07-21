@@ -40,6 +40,13 @@ dialog#delete-modal-overlay::backdrop {
 	-webkit-backdrop-filter: blur(4px);
 }
 
+dialog#delete-modal-overlay button:focus,
+dialog#delete-modal-overlay button:focus-visible {
+	outline: none;
+	box-shadow: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
 /* Transição suave entre telas */
 #loadingScreen,
 #loginScreen,

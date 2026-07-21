@@ -1,8 +1,9 @@
 import { computeTotalMinutesFromTimes } from './computeTotalMinutesFromTimes'
 import { pointsController } from './controllers/PointsController'
-import { toastError } from './conts'
-import { credentials } from './credentials'
 import buildModal from './modalView'
+import { authService } from './services/AuthService'
+import { pontosCache } from './services/pontosCache'
+import { toastError, toastSuccess } from './ui/toasts'
 import { formatMinutesToHHMM } from './utils/formatMinutesToHHMM'
 
 /**
@@ -54,7 +55,8 @@ export function openMenuModal() {
 				icon: 'log-out',
 				variant: 'menuNeutral',
 				onClick: async () => {
-					await credentials.signOut()
+					await authService.signOut()
+					pontosCache.clear()
 					location.reload()
 				},
 			},
@@ -65,10 +67,19 @@ export function openMenuModal() {
 				optimistic: true,
 				onClick: async () => {
 					const confirmed = confirm('Todos os registros serão excluídos. Esta ação não pode ser desfeita.')
-					if (confirmed) {
-						await pointsController.deleteAllRecords()
-						credentials.clearCache()
+					if (!confirmed) return
+
+					const ok = await pointsController.deleteAllRecords()
+					const user = await authService.getUser()
+
+					if (ok) {
+						pontosCache.clear()
+						toastSuccess('Todos os registros excluídos com sucesso!')
+					} else {
+						toastError('Erro ao excluir.')
 					}
+
+					if (user) await pointsController.initForUser({ id: user.id })
 				},
 			},
 		],

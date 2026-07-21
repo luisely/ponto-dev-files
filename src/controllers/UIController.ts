@@ -93,12 +93,17 @@ class UIController {
 
 	showWelcomeMessage(userName: string) {
 		welcomeTitle.textContent = userName
-		
-		// Esconder tela de login e mostrar tela principal
+
+		// Esconder loading e login, mostrar tela principal
+		const loadingScreen = document.getElementById('loadingScreen')
 		const loginScreen = document.getElementById('loginScreen')
 		const mainScreen = document.getElementById('mainScreen')
-		
-		if (loginScreen) loginScreen.classList.add('hidden')
+
+		if (loadingScreen) loadingScreen.classList.add('hidden')
+		if (loginScreen) {
+			loginScreen.classList.add('hidden')
+			loginScreen.classList.remove('flex')
+		}
 		if (mainScreen) {
 			mainScreen.classList.remove('hidden')
 			mainScreen.classList.add('flex')
@@ -106,11 +111,16 @@ class UIController {
 	}
 
 	hideWelcomeMessage() {
-		// Mostrar tela de login e esconder tela principal
+		// Esconder loading e main, mostrar tela de login
+		const loadingScreen = document.getElementById('loadingScreen')
 		const loginScreen = document.getElementById('loginScreen')
 		const mainScreen = document.getElementById('mainScreen')
-		
-		if (loginScreen) loginScreen.classList.remove('hidden')
+
+		if (loadingScreen) loadingScreen.classList.add('hidden')
+		if (loginScreen) {
+			loginScreen.classList.remove('hidden')
+			loginScreen.classList.add('flex')
+		}
 		if (mainScreen) {
 			mainScreen.classList.add('hidden')
 			mainScreen.classList.remove('flex')

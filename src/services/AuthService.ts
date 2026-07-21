@@ -1,4 +1,4 @@
-import type { User } from '@supabase/supabase-js'
+import type { AuthChangeEvent, User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { debugLog } from '../config/debug'
 
@@ -81,17 +81,18 @@ class AuthService {
 	}
 
 	/**
-	 * Observa mudanças no estado de autenticação
+	 * Observa mudanças no estado de autenticação.
+	 * Passa o evento para o callback para permitir filtragem (ex: ignorar TOKEN_REFRESHED).
 	 */
-	onAuthStateChange(callback: (user: User | null) => void) {
-		return supabase.auth.onAuthStateChange((_event, session) => {
+	onAuthStateChange(callback: (event: AuthChangeEvent, user: User | null) => void) {
+		return supabase.auth.onAuthStateChange((event, session) => {
 			const user = session?.user ?? null
 
 			// Atualiza cache quando há mudança de estado
 			this.userCache = user
 			this.cacheTimestamp = Date.now()
 
-			callback(user)
+			callback(event, user)
 		})
 	}
 

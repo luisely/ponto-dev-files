@@ -8,7 +8,8 @@ import { debugLog } from '../config/debug'
 
 class AppController {
 	private syncInterval: number | null = null
-	private isInitialSessionHandled = false
+	private lastRefetchTs = 0
+	private readonly REFETCH_THROTTLE_MS = 60_000 // 60s entre refetches ao focar
 
 	async init() {
 		debugLog('🎬 [AppController] init() chamado')
@@ -19,6 +20,9 @@ class AppController {
 
 		// Setup online/offline listeners
 		this.setupConnectionListeners()
+
+		// Setup visibility listener (refetch ao voltar pra aba)
+		this.setupVisibilityListener()
 
 		// Verificar sessão existente IMEDIATAMENTE (antes do listener)
 		try {
@@ -50,10 +54,6 @@ class AppController {
 
 				// Atualizar badge de pendências
 				uiController.updatePendingBadge(session.user.id)
-
-				// Marca que a sessão inicial já foi processada
-				this.isInitialSessionHandled = true
-				debugLog('🚩 [AppController] Flag isInitialSessionHandled marcada como true')
 			} else {
 				// Usuário não autenticado, mostrar tela de login
 				pointsController.setUser(null)
@@ -66,14 +66,23 @@ class AppController {
 			uiController.hideWelcomeMessage()
 		}
 
-		// Observar mudanças futuras de autenticação
-		authService.onAuthStateChange(async (user) => {
-			debugLog('🔔 [AppController] onAuthStateChange disparado. Flag:', this.isInitialSessionHandled)
+		// Observar mudanças futuras de autenticação.
+		// Só reagimos a SIGNED_IN e SIGNED_OUT. Ignoramos TOKEN_REFRESHED,
+		// INITIAL_SESSION (já processado acima via getSession) e USER_UPDATED
+		// para evitar refetch desnecessário da API a cada renovação de token.
+		authService.onAuthStateChange(async (event, user) => {
+			debugLog(`🔔 [AppController] onAuthStateChange: ${event}`)
 
-			// Ignora o primeiro disparo se já processamos a sessão inicial
-			if (this.isInitialSessionHandled) {
-				debugLog('⏭️ [AppController] Pulando disparo duplicado (sessão já processada)')
-				this.isInitialSessionHandled = false // Reset para permitir mudanças futuras
+			if (event !== 'SIGNED_IN' && event !== 'SIGNED_OUT') {
+				debugLog(`⏭️ [AppController] Ignorando evento ${event}`)
+				return
+			}
+
+			// Se SIGNED_IN e o usuário já é o mesmo já processado, pula
+			// (evita duplicação com o processamento inicial via getSession)
+			const currentUserId = pointsController.getUser()?.id
+			if (event === 'SIGNED_IN' && user && user.id === currentUserId) {
+				debugLog(`⏭️ [AppController] Usuário ${user.id} já processado, pulando`)
 				return
 			}
 
@@ -168,6 +177,39 @@ class AppController {
 			uiController.showMenuModal()
 			uiController.createLucideIcons()
 		})
+	}
+
+	/**
+	 * Configura listener de visibilidade da aba.
+	 * Quando o usuário volta pra aba, atualiza os pontos (com throttle).
+	 * Não roda o pipeline inteiro — só refetch + badge.
+	 */
+	private setupVisibilityListener() {
+		document.addEventListener('visibilitychange', () => {
+			if (document.visibilityState !== 'visible') return
+			this.refetchOnFocus()
+		})
+	}
+
+	private async refetchOnFocus() {
+		const user = pointsController.getUser()
+		if (!user) return
+		if (!navigator.onLine) return
+
+		const now = Date.now()
+		if (now - this.lastRefetchTs < this.REFETCH_THROTTLE_MS) {
+			debugLog('⏭️ [AppController] Refetch em foco pulado (throttle)')
+			return
+		}
+		this.lastRefetchTs = now
+
+		debugLog('🔄 [AppController] Refetch em foco...')
+		try {
+			await pointsController.initForUser()
+			uiController.updatePendingBadge(user.id)
+		} catch (error) {
+			console.error('Erro no refetch em foco:', error)
+		}
 	}
 
 	/**

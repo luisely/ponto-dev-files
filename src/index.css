@@ -16,11 +16,13 @@ body {
 }
 
 /* Transição suave entre telas */
+#loadingScreen,
 #loginScreen,
 #mainScreen {
 	transition: opacity 0.3s ease-in-out;
 }
 
+#loadingScreen.hidden,
 #loginScreen.hidden,
 #mainScreen.hidden {
 	opacity: 0;

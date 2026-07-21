@@ -153,7 +153,7 @@ class AppController {
 				// Verifica se foi registrado offline
 				const pendingCount = offlineQueueService.getPendingCount(currentUser.id)
 				if (pendingCount > 0 && !navigator.onLine) {
-					uiController.showInfo(`Registrado offline! Será sincronizado quando voltar online.`)
+					uiController.showInfo("Registrado offline! Será sincronizado quando voltar online.")
 				} else {
 					uiController.showSuccess('Registro realizado com sucesso!')
 				}

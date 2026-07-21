@@ -1,6 +1,7 @@
 import { atualizarTabelaPontos } from '../atualizarTabelaPontos'
 import { batidaPontoService } from '../services/BatidaServices'
 import { uiController } from './UIController'
+import { debugLog } from '../config/debug'
 
 class PointsController {
 	private currentUser: { id: string } | null = null
@@ -9,13 +10,20 @@ class PointsController {
 		this.currentUser = user
 	}
 
+	getUser() {
+		return this.currentUser
+	}
+
 	async initForUser() {
+		debugLog('📊 [PointsController] initForUser chamado')
 		await atualizarTabelaPontos(this.currentUser || undefined)
 	}
 
 	async registerPoint(date: string, time: string): Promise<boolean> {
 		try {
-			await batidaPontoService.add(date, time)
+			// Passa o user_id para evitar requisição em modo offline
+			const user_id = this.currentUser?.id
+			await batidaPontoService.add(date, time, user_id)
 			await this.initForUser()
 			return true
 		} catch (error) {

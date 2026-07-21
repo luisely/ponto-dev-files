@@ -1,4 +1,4 @@
-import { createIcons, Eraser, LogOut, Menu } from 'lucide'
+import { initLucideIcons } from '../utils/lucideIcons'
 import { Datepicker } from 'vanillajs-datepicker'
 import {
 	btnRegister,
@@ -15,6 +15,7 @@ import { credentials } from '../credentials'
 import buildDeleteModal from '../modalView'
 import buildModalMenu from '../modalViewMenu'
 import { renderSkeleton } from '../renderSkeleton'
+import { offlineQueueService } from '../services/OfflineQueueService'
 import pointsController from './PointsController'
 
 class UIController {
@@ -117,13 +118,7 @@ class UIController {
 	}
 
 	createLucideIcons() {
-		createIcons({
-			icons: {
-				Menu,
-				LogOut,
-				Eraser,
-			},
-		})
+		initLucideIcons()
 	}
 
 	showDeleteModal(record: string | undefined, onConfirm: (r?: string) => void) {
@@ -198,6 +193,46 @@ class UIController {
 		})
 
 		document.body.appendChild(overlay)
+	}
+
+	/**
+	 * Atualiza badge de pendências
+	 */
+	updatePendingBadge(usuario_id: string) {
+		const count = offlineQueueService.getPendingCount(usuario_id)
+		const badge = document.getElementById('pendingBadge')
+
+		if (badge) {
+			if (count > 0) {
+				badge.textContent = count.toString()
+				badge.classList.remove('hidden')
+			} else {
+				badge.classList.add('hidden')
+			}
+		}
+	}
+
+	/**
+	 * Atualiza status de conexão
+	 */
+	updateConnectionStatus(isOnline: boolean) {
+		const statusIndicator = document.getElementById('connectionStatus')
+
+		if (statusIndicator) {
+			if (isOnline) {
+				statusIndicator.innerHTML = '<i data-lucide="wifi" class="w-5 h-5"></i>'
+				statusIndicator.title = 'Online'
+				statusIndicator.classList.remove('offline')
+				statusIndicator.classList.add('online')
+			} else {
+				statusIndicator.innerHTML = '<i data-lucide="wifi-off" class="w-5 h-5"></i>'
+				statusIndicator.title = 'Offline'
+				statusIndicator.classList.remove('online')
+				statusIndicator.classList.add('offline')
+			}
+			// Recriar ícones Lucide
+			this.createLucideIcons()
+		}
 	}
 }
 

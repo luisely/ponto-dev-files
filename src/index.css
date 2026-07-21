@@ -72,6 +72,66 @@ input[type="time"]::-webkit-datetime-edit {
 	scrollbar-width: none; /* Firefox */
 }
 
+/* Badges de status offline */
+.badge-pending,
+.badge-error {
+	font-size: 0.875rem;
+	padding: 0.25rem;
+	border-radius: 0.25rem;
+	font-weight: 600;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	animation: pulse 2s ease-in-out infinite;
+}
+
+.badge-pending {
+	background-color: #f59e0b;
+	color: #000;
+}
+
+.badge-error {
+	background-color: #ef4444;
+	color: #fff;
+}
+
+@keyframes pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.7;
+	}
+}
+
+/* Status de conexão */
+#connectionStatus {
+	transition: all 0.3s ease;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#connectionStatus.online {
+	color: #22c55e;
+}
+
+#connectionStatus.offline {
+	color: #ef4444;
+	animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
+}
+
 /* Toast customization */
 .toastify {
 	opacity: 1 !important;

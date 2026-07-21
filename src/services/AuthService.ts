@@ -1,5 +1,6 @@
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { debugLog } from '../config/debug'
 
 class AuthService {
 	private userCache: User | null = null
@@ -99,6 +100,7 @@ class AuthService {
 	 * Cria se não existir
 	 */
 	async ensureUserProfile(user: User): Promise<void> {
+		debugLog('👤 [AuthService] ensureUserProfile chamado para user:', user.id)
 		// Verifica se o usuário já existe
 		const { data: existingUser, error: fetchError } = await supabase.from('usuarios').select('id').eq('id', user.id).single()
 

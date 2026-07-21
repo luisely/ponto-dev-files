@@ -1,15 +1,18 @@
 import { computeTotalMinutesFromTimes } from './computeTotalMinutesFromTimes'
 import { tabelaDiv } from './conts'
 import { formatMinutesToHHMM } from './utils/formatMinutesToHHMM'
+import { offlineQueueService } from './services/OfflineQueueService'
 
 type Ponto = {
-	expireAt: number
+	expireAt?: number
 	date: string
-	cpf3Digits: string
+	cpf3Digits?: string
 	time: string
-	PK: string
-	name: string
-	SK: string
+	PK?: string
+	name?: string
+	SK?: string
+	id?: string // Para pontos pendentes
+	status?: 'pending' | 'syncing' | 'error' // Status offline
 }
 
 function buildElementId(value: string) {
@@ -23,10 +26,10 @@ export function renderTabelaPontos(pontos: Ponto[]) {
 	}
 
 	// Agrupa por data
-	const porData: Record<string, string[]> = {}
+	const porData: Record<string, Ponto[]> = {}
 	pontos.forEach((ponto) => {
 		if (!porData[ponto.date]) porData[ponto.date] = []
-		porData[ponto.date].push(ponto.time)
+		porData[ponto.date].push(ponto)
 	})
 
 	// Monta o HTML agrupado por data
@@ -40,18 +43,26 @@ export function renderTabelaPontos(pontos: Ponto[]) {
 		})
 		.forEach((date) => {
 			// calcula total do dia
-			const timesForDate = porData[date] || []
+			const pontosForDate = porData[date] || []
+			const timesForDate = pontosForDate.map((p) => p.time)
 			const { minutes: totalMinutes, isLess8h, isPlus8h, isOk } = computeTotalMinutesFromTimes(timesForDate)
 			const totalHHMM = formatMinutesToHHMM(totalMinutes)
 
-			html += buildDateBlock(date, timesForDate, totalHHMM, isPlus8h, isLess8h, isOk)
+			html += buildDateBlock(date, pontosForDate, totalHHMM, isPlus8h, isLess8h, isOk)
 		})
 
 	tabelaDiv.innerHTML = html
 }
 
 // Helper: build HTML block for a single date. Recebe os valores já calculados.
-export function buildDateBlock(date: string, times: string[], totalHHMM: string, isPlus8h?: boolean, isLess8h?: boolean, isOk?: boolean) {
+export function buildDateBlock(
+	date: string,
+	pontos: Ponto[],
+	totalHHMM: string,
+	isPlus8h?: boolean,
+	isLess8h?: boolean,
+	isOk?: boolean
+) {
 	const [day, month, year] = date.split('/').map(Number)
 	let out = ''
 	out += `<div id="date-block-${buildElementId(date)}" class="w-full">`
@@ -68,14 +79,28 @@ export function buildDateBlock(date: string, times: string[], totalHHMM: string,
 			</div>`
 
 	out += `<div class="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 px-1 py-1 mb-1 border-b border-l border-r border-black/85 dark:border-[#1D4A2E] bg-[#EDE7D6]/50 dark:bg-[#0D0D0D]/45 rounded-b-xs overflow-x-hidden">`
-	times
+
+	pontos
 		.slice()
-		.sort()
-		.forEach((time) => {
-			out += `<div id="time-item-${buildElementId(`${date}-${time}`)}" class="mx-1">
+		.sort((a, b) => a.time.localeCompare(b.time))
+		.forEach((ponto) => {
+			const time = ponto.time
+			const isPending = ponto.status === 'pending' || ponto.status === 'syncing'
+			const isError = ponto.status === 'error'
+
+			// Badge de status
+			let badge = ''
+			if (isPending) {
+				badge = `<span class="badge-pending"><i data-lucide="clock" class="w-3 h-3 inline-block"></i></span>`
+			} else if (isError) {
+				badge = `<span class="badge-error"><i data-lucide="alert-circle" class="w-3 h-3 inline-block"></i></span>`
+			}
+
+			out += `<div id="time-item-${buildElementId(`${date}-${time}`)}" class="mx-1 flex items-center gap-1">
 					 <a href="#" class="link-delete hover:brightness-110 text-teal-900 dark:text-[#F5B11E] clock text-xl md:text-xl lg:text-2xl transition whitespace-nowrap" data-record="${date}&${time}">
 						 •${time}
 					 </a>
+					 ${badge}
 				</div>`
 		})
 	out += `</div>`

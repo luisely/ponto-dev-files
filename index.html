@@ -28,7 +28,8 @@
       <div class="text-center mb-8">
         <div
           class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-linear-to-br from-[#54dd89] to-[#2ea15b] mb-4 shadow-lg">
-          <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-labelledby="logoTitle">
+          <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img"
+            aria-labelledby="logoTitle">
             <title id="logoTitle">Ícone de relógio - Ponto Eletrônico</title>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -75,7 +76,8 @@
           <div class="flex items-center gap-3">
             <div
               class="w-10 h-10 rounded-full bg-linear-to-br from-[#54dd89] to-[#2ea15b] flex items-center justify-center">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-labelledby="avatarTitle">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img"
+                aria-labelledby="avatarTitle">
                 <title id="avatarTitle">Ícone de relógio do usuário</title>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -86,10 +88,23 @@
               <h1 id="welcomeTitle" class="text-xl lg:text-2xl font-bold text-[#54dd89]">Carregando...</h1>
             </div>
           </div>
-          <button id="menuBtn" type="button"
-            class="rounded-lg border border-[#1D4A2E] bg-[#0D0D0D] p-2.5 text-white hover:bg-[#1D4A2E]/50 cursor-pointer transition">
-            <i data-lucide="menu"></i>
-          </button>
+          <div class="flex items-center gap-2">
+            <!-- Status de conexão -->
+            <span id="connectionStatus" class="cursor-help" title="Status de conexão">
+              <i data-lucide="wifi" class="w-5 h-5"></i>
+            </span>
+            <!-- Badge de pendências -->
+            <div class="relative">
+              <button id="menuBtn" type="button"
+                class="rounded-lg border border-[#1D4A2E] bg-[#0D0D0D] p-2.5 text-white hover:bg-[#1D4A2E]/50 cursor-pointer transition">
+                <i data-lucide="menu"></i>
+              </button>
+              <span id="pendingBadge"
+                class="hidden absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                0
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

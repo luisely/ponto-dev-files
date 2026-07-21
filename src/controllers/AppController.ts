@@ -121,8 +121,15 @@ class AppController {
 		uiController.bindRegister(async (e?: Event) => {
 			e?.preventDefault()
 
-			const currentUser = await authService.getUser()
-			if (!currentUser) {
+			// Usa o userId já resolvido no login. Se não existe, tenta session local
+			// (funciona offline pois getSession lê do localStorage).
+			let userId = this.lastProcessedUserId
+			if (!userId) {
+				const session = await authService.getSession()
+				userId = session?.user?.id ?? null
+			}
+
+			if (!userId) {
 				toastInfo('Faça login para registrar pontos')
 				return
 			}
@@ -135,7 +142,7 @@ class AppController {
 			}
 
 			uiController.isLoading(true)
-			const success = await pointsController.registerPoint(currentUser.id, date, time)
+			const success = await pointsController.registerPoint(userId, date, time)
 			uiController.isLoading(false)
 
 			if (!success) {
@@ -143,31 +150,32 @@ class AppController {
 				return
 			}
 
-			const pendingCount = offlineQueueService.getPendingCount(currentUser.id)
+			const pendingCount = offlineQueueService.getPendingCount(userId)
 			if (pendingCount > 0 && !navigator.onLine) {
 				toastInfo('Registrado offline! Será sincronizado quando voltar online.')
 			} else {
 				toastSuccess('Registro realizado com sucesso!')
 			}
-			uiController.updatePendingBadge(currentUser.id)
+			uiController.updatePendingBadge(userId)
 		})
 
 		uiController.bindTableDelete((record) => {
 			openDeleteModal(record, async () => {
-				const ok = await pointsController.deleteRecord(record)
+				const ok = await pointsController.deleteRecord(record, this.lastProcessedUserId ?? undefined)
 				if (ok) {
 					toastSuccess('Registro excluído com sucesso!')
 					return
 				}
 				toastError('Erro ao excluir o registro.')
 				// Restaura UI (desfaz o optimistic remove)
-				const user = await authService.getUser()
-				if (user) await pointsController.initForUser({ id: user.id })
+				if (this.lastProcessedUserId) {
+					await pointsController.initForUser({ id: this.lastProcessedUserId }, true)
+				}
 			})
 		})
 
 		uiController.bindMenu(() => {
-			openMenuModal()
+			openMenuModal(this.lastProcessedUserId)
 		})
 	}
 
@@ -183,8 +191,13 @@ class AppController {
 	}
 
 	private async refetchOnFocus() {
-		const user = await authService.getUser()
-		if (!user) return
+		// Usa lastProcessedUserId ou sessão local (funciona offline)
+		let userId = this.lastProcessedUserId
+		if (!userId) {
+			const session = await authService.getSession()
+			userId = session?.user?.id ?? null
+		}
+		if (!userId) return
 		if (!navigator.onLine) return
 
 		const now = Date.now()
@@ -196,8 +209,8 @@ class AppController {
 
 		debugLog('🔄 [AppController] Refetch em foco...')
 		try {
-			await pointsController.initForUser({ id: user.id })
-			uiController.updatePendingBadge(user.id)
+			await pointsController.initForUser({ id: userId })
+			uiController.updatePendingBadge(userId)
 		} catch (error) {
 			console.error('Erro no refetch em foco:', error)
 		}
@@ -230,10 +243,9 @@ class AppController {
 			if (result.success > 0) {
 				toastSuccess(`✓ ${result.success} registro(s) sincronizado(s)!`)
 
-				const user = await authService.getUser()
-				if (user) {
-					await pointsController.initForUser({ id: user.id })
-					uiController.updatePendingBadge(user.id)
+				if (this.lastProcessedUserId) {
+					await pointsController.initForUser({ id: this.lastProcessedUserId }, true)
+					uiController.updatePendingBadge(this.lastProcessedUserId)
 				}
 			}
 

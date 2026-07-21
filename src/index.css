@@ -35,9 +35,9 @@ dialog#delete-modal-overlay[open] {
 }
 
 dialog#delete-modal-overlay::backdrop {
-	background: rgba(0, 0, 0, 0.4);
-	backdrop-filter: blur(4px);
-	-webkit-backdrop-filter: blur(4px);
+	background: rgba(0, 0, 0, 0.5);
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
 }
 
 dialog#delete-modal-overlay button:focus,

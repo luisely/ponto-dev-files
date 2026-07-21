@@ -97,16 +97,22 @@ class AuthService {
 	}
 
 	/**
-	 * Garante que o usuário existe na tabela public.usuarios
-	 * Cria se não existir
+	 * Garante que o usuário existe na tabela public.usuarios.
+	 * Cria se não existir. Usa flag em localStorage pra não verificar
+	 * em todo reload — só checa na primeira vez ou se o flag não existe.
 	 */
 	async ensureUserProfile(user: User): Promise<void> {
+		const flagKey = `profile_ensured_${user.id}`
+		if (localStorage.getItem(flagKey)) return
+
 		debugLog('👤 [AuthService] ensureUserProfile chamado para user:', user.id)
-		// Verifica se o usuário já existe
 		const { data: existingUser, error: fetchError } = await supabase.from('usuarios').select('id').eq('id', user.id).single()
 
-		// Se já existe, não faz nada
-		if (existingUser) return
+		// Se já existe, marca flag e retorna
+		if (existingUser) {
+			localStorage.setItem(flagKey, '1')
+			return
+		}
 
 		// Se não existe (404), cria
 		if (fetchError && fetchError.code === 'PGRST116') {
@@ -122,6 +128,7 @@ class AuthService {
 				throw insertError
 			}
 
+			localStorage.setItem(flagKey, '1')
 			return
 		}
 

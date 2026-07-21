@@ -3,17 +3,12 @@ import { Datepicker } from 'vanillajs-datepicker'
 import {
 	btnRegister,
 	BUTTON_WITH_LOADING,
-	form,
-	inputName,
-	inputPin,
 	inputTime,
-	loginFields,
 	menuBtn,
 	tabelaDiv,
 	toastError,
 	toastInfo,
 	toastSuccess,
-	welcomeMessage,
 	welcomeTitle,
 } from '../conts'
 import { credentials } from '../credentials'
@@ -41,15 +36,6 @@ class UIController {
 		})
 	}
 
-	setNameAndDigitsInputs() {
-		const { name, digits } = credentials.get()
-
-		if (name && digits) {
-			inputName.value = name
-			inputPin.value = digits
-		}
-	}
-
 	renderSkeleton() {
 		renderSkeleton()
 	}
@@ -66,16 +52,19 @@ class UIController {
 		toastInfo(msg)
 	}
 
+	bindGoogleLogin(handler: () => void) {
+		const googleLoginBtn = document.getElementById('googleLoginBtn')
+		if (googleLoginBtn) {
+			googleLoginBtn.addEventListener('click', handler)
+		}
+	}
+
 	bindRegister(handler: (e?: Event) => void) {
 		btnRegister.addEventListener('click', handler)
 	}
 
 	bindMenu(handler: (e?: Event) => void) {
 		menuBtn.addEventListener('click', handler)
-	}
-
-	bindFormFocusOut(handler: () => void) {
-		form.addEventListener('focusout', handler)
 	}
 
 	isLoading(isLoading: boolean) {
@@ -102,14 +91,29 @@ class UIController {
 	}
 
 	showWelcomeMessage(userName: string) {
-		welcomeTitle.textContent = `Bem-vindo, ${userName}!`
-		welcomeMessage.classList.remove('hidden')
-		loginFields.classList.add('hidden')
+		welcomeTitle.textContent = userName
+		
+		// Esconder tela de login e mostrar tela principal
+		const loginScreen = document.getElementById('loginScreen')
+		const mainScreen = document.getElementById('mainScreen')
+		
+		if (loginScreen) loginScreen.classList.add('hidden')
+		if (mainScreen) {
+			mainScreen.classList.remove('hidden')
+			mainScreen.classList.add('flex')
+		}
 	}
 
 	hideWelcomeMessage() {
-		welcomeMessage.classList.add('hidden')
-		loginFields.classList.remove('hidden')
+		// Mostrar tela de login e esconder tela principal
+		const loginScreen = document.getElementById('loginScreen')
+		const mainScreen = document.getElementById('mainScreen')
+		
+		if (loginScreen) loginScreen.classList.remove('hidden')
+		if (mainScreen) {
+			mainScreen.classList.add('hidden')
+			mainScreen.classList.remove('flex')
+		}
 	}
 
 	createLucideIcons() {
@@ -174,15 +178,15 @@ class UIController {
 			message: 'O QUE DESEJA?',
 			deleteAllText: 'APAGAR TUDO',
 			logoutText: 'SAIR',
-			onLogout: () => {
-				credentials.clear()
+			onLogout: async () => {
+				await credentials.signOut()
 				location.reload()
 			},
 			onDeleteAll: async () => {
 				const confirmed = confirm('Todos os registros serão excluídos. Esta ação não pode ser desfeita.')
 				if (confirmed) {
 					await pointsController.deleteAllRecords()
-					credentials.clearPontos()
+					credentials.clearCache()
 				}
 			},
 			onOptimisticRemove: () => {

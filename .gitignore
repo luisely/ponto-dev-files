@@ -7,6 +7,13 @@ node_modules/
 dist/
 dev/
 */.pnp/
+CHECKLIST.md
+MIGRATION_*.MD
+UI_*.MD
+
+# Environment variables
+.env
+.env.local
 
 # Sourcemaps
 *.map

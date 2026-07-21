@@ -1,20 +1,25 @@
-import { getFieldsValues } from './conts'
+import { authService } from './services/AuthService'
 
 class Credentials {
-	private readonly NAME_KEY = '000_name'
-	private readonly DIGITS_KEY = '000_digits'
-
-	save(name: string, digits: string) {
-		localStorage.setItem(this.NAME_KEY, name)
-		localStorage.setItem(this.DIGITS_KEY, digits)
-	}
-	clear() {
-		localStorage.removeItem(this.NAME_KEY)
-		localStorage.removeItem(this.DIGITS_KEY)
-		this.clearPontos()
+	/**
+	 * Retorna o usuário autenticado
+	 */
+	async getUser() {
+		return await authService.getUser()
 	}
 
-	clearPontos() {
+	/**
+	 * Faz logout e limpa o cache local
+	 */
+	async signOut() {
+		await authService.signOut()
+		this.clearCache()
+	}
+
+	/**
+	 * Limpa o cache de pontos do localStorage
+	 */
+	clearCache() {
 		for (const key of Object.keys(localStorage)) {
 			if (key.startsWith('pontos_')) {
 				localStorage.removeItem(key)
@@ -22,23 +27,12 @@ class Credentials {
 		}
 	}
 
-	get(): { name: string | null; digits: string | null } {
-		return {
-			name: localStorage.getItem(this.NAME_KEY),
-			digits: localStorage.getItem(this.DIGITS_KEY),
-		}
-	}
-
-	ensure(): { name: string; digits: string } {
-		const name = localStorage.getItem(this.NAME_KEY) || getFieldsValues().name
-		const digits = localStorage.getItem(this.DIGITS_KEY) || getFieldsValues().digits
-		if (!name || !digits) throw new Error('Preencha todos os campos corretamente.')
-		return { name, digits }
-	}
-
-	has(): boolean {
-		const { name, digits } = this.get()
-		return Boolean(name && digits)
+	/**
+	 * Verifica se há um usuário autenticado
+	 */
+	async has(): Promise<boolean> {
+		const user = await this.getUser()
+		return Boolean(user)
 	}
 }
 

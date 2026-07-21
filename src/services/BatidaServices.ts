@@ -1,34 +1,92 @@
-import { credentials } from '../credentials'
-import { api } from './axios'
+import { supabase } from '../lib/supabase'
+import { authService } from './AuthService'
 
 class BatidaServices {
-	async add(name: string, digits: string, date: string, time: string) {
-		return await api.post('register', {
-			PK: name,
-			SK: digits.toString(),
-			name,
-			cpf3Digits: digits,
-			date,
-			time,
-		})
+	/**
+	 * Adiciona um novo registro de ponto
+	 * @param date - Data no formato dd/mm/yyyy
+	 * @param time - Hora no formato HH:mm
+	 */
+	async add(date: string, time: string) {
+		const user = await authService.getUser()
+		if (!user) throw new Error('Usuário não autenticado')
+
+		// Converter date de dd/mm/yyyy para yyyy-mm-dd (ISO)
+		const [day, month, year] = date.split('/')
+		const dateISO = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+
+		// Garantir formato HH:mm:ss
+		const timeFormatted = time.length === 5 ? `${time}:00` : time
+
+		const { data, error } = await supabase
+			.from('pontos')
+			.insert({
+				usuario_id: user.id,
+				data: dateISO,
+				hora: timeFormatted,
+			})
+			.select()
+			.single()
+
+		if (error) throw error
+		return data
 	}
 
-	async get(name: string, digits: string) {
-		const response = await api.get(`getPontos/${name}/${digits}`)
-		return response.data
+	/**
+	 * Busca todos os pontos do usuário autenticado
+	 */
+	async get() {
+		const user = await authService.getUser()
+		if (!user) throw new Error('Usuário não autenticado')
+
+		const { data, error } = await supabase
+			.from('pontos')
+			.select('*')
+			.eq('usuario_id', user.id)
+			.order('data', { ascending: false })
+			.order('hora', { ascending: false })
+
+		if (error) throw error
+		return data || []
 	}
 
+	/**
+	 * Remove um registro específico
+	 * @param record - String no formato "dd/mm/yyyy&HH:mm"
+	 */
 	async remove(record: string | undefined) {
-		const [date, time] = record?.split('&') || ['', '']
-		const { name, digits } = credentials.ensure()
+		if (!record) throw new Error('Registro inválido')
 
-		return await api.delete(`delete/${name}/${digits}/record?date=${date}&time=${time}`)
+		const user = await authService.getUser()
+		if (!user) throw new Error('Usuário não autenticado')
+
+		const [date, time] = record.split('&')
+		const [day, month, year] = date.split('/')
+		const dateISO = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+
+		// Garantir formato HH:mm:ss
+		const timeFormatted = time.length === 5 ? `${time}:00` : time
+
+		const { error } = await supabase
+			.from('pontos')
+			.delete()
+			.eq('usuario_id', user.id)
+			.eq('data', dateISO)
+			.eq('hora', timeFormatted)
+
+		if (error) throw error
 	}
 
+	/**
+	 * Remove todos os registros do usuário autenticado
+	 */
 	async removeAll() {
-		const { name, digits } = credentials.ensure()
+		const user = await authService.getUser()
+		if (!user) throw new Error('Usuário não autenticado')
 
-		return await api.delete(`delete/${name}/${digits}/all`)
+		const { error } = await supabase.from('pontos').delete().eq('usuario_id', user.id)
+
+		if (error) throw error
 	}
 }
 

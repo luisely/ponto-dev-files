@@ -1,23 +1,23 @@
 import { atualizarTabelaPontos } from '../atualizarTabelaPontos'
-import { credentials } from '../credentials'
 import { batidaPontoService } from '../services/BatidaServices'
 import { uiController } from './UIController'
 
 class PointsController {
-	initForCredentials(name: string, digits: string) {
-		atualizarTabelaPontos(name, digits)
+	private currentUser: { id: string } | null = null
+
+	setUser(user: { id: string } | null) {
+		this.currentUser = user
 	}
 
-	async registerPoint(name: string, digits: string, date: string, time: string): Promise<boolean> {
+	async initForUser() {
+		await atualizarTabelaPontos(this.currentUser || undefined)
+	}
+
+	async registerPoint(date: string, time: string): Promise<boolean> {
 		try {
-			const response = await batidaPontoService.add(name, digits, date, time)
-
-			if (response.status === 200 || response.status === 201) {
-				this.initForCredentials(name, digits)
-				return true
-			}
-
-			return false
+			await batidaPontoService.add(date, time)
+			await this.initForUser()
+			return true
 		} catch (error) {
 			console.error('Erro ao registrar ponto:', error)
 			return false
@@ -26,55 +26,24 @@ class PointsController {
 
 	async deleteRecord(record: string | undefined) {
 		try {
-			const response = await batidaPontoService.remove(record)
-			if (response && response.status === 200) {
-				uiController.showSuccess('Registro excluído com sucesso!')
-				// Otimistic update already removed it from UI, no need to reload
-			} else {
-				uiController.showError('Erro ao excluir o registro.')
-				// Reload on error to restore optimistically removed item
-				const { name, digits } = credentials.get()
-				if (name && digits) await atualizarTabelaPontos(name, digits)
-			}
+			await batidaPontoService.remove(record)
+			uiController.showSuccess('Registro excluído com sucesso!')
 		} catch (error) {
-			const msg = error && (error as Error).message
-			if (msg === 'Preencha todos os campos corretamente.') {
-				uiController.showInfo(msg)
-			} else {
-				uiController.showError('Erro de comunicação.')
-				console.error('Erro ao excluir registro:', error)
-			}
-			// Reload on error to restore optimistically removed item
-			const { name, digits } = credentials.get()
-			if (name && digits) await atualizarTabelaPontos(name, digits)
+			uiController.showError('Erro ao excluir o registro.')
+			console.error('Erro ao excluir registro:', error)
+			await this.initForUser()
 		}
 	}
 
 	async deleteAllRecords() {
 		try {
-			const response = await batidaPontoService.removeAll()
-			if (response && response.status === 200) {
-				uiController.showSuccess('Todos os registros excluídos com sucesso!')
-				const { name, digits } = credentials.get()
-				if (name && digits) await atualizarTabelaPontos(name, digits)
-				// Otimistic update already removed it from UI, no need to reload
-			} else {
-				uiController.showError('Erro ao excluir.')
-				// Reload on error to restore optimistically removed item
-				const { name, digits } = credentials.get()
-				if (name && digits) await atualizarTabelaPontos(name, digits)
-			}
+			await batidaPontoService.removeAll()
+			uiController.showSuccess('Todos os registros excluídos com sucesso!')
+			await this.initForUser()
 		} catch (error) {
-			const msg = error && (error as Error).message
-			if (msg === 'Preencha todos os campos corretamente.') {
-				uiController.showInfo(msg)
-			} else {
-				uiController.showError('Erro de comunicação.')
-				console.error('Erro ao excluir registro:', error)
-			}
-			// Reload on error to restore optimistically removed item
-			const { name, digits } = credentials.get()
-			if (name && digits) await atualizarTabelaPontos(name, digits)
+			uiController.showError('Erro ao excluir.')
+			console.error('Erro ao excluir registros:', error)
+			await this.initForUser()
 		}
 	}
 }

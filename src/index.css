@@ -1,41 +1,101 @@
 @import "tailwindcss";
 
 body {
-  font-family: "Space Grotesk", "Inter",  sans-serif;
-  font-weight: 600;
+	font-family: "Space Grotesk", "Inter", sans-serif;
+	font-weight: 600;
 }
+
 .suse {
-  font-family: 'Suse', monospace;
-  font-weight: 600;
+	font-family: "Suse", monospace;
+	font-weight: 600;
 }
-.clock{
-  font-family: 'Share Tech Mono', monospace;
-  font-weight: 600;
+
+.clock {
+	font-family: "Share Tech Mono", monospace;
+	font-weight: 600;
 }
+
+/* Transição suave entre telas */
+#loginScreen,
+#mainScreen {
+	transition: opacity 0.3s ease-in-out;
+}
+
+#loginScreen.hidden,
+#mainScreen.hidden {
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* Remover aparência padrão dos inputs */
+input {
+	-webkit-appearance: none;
+	appearance: none;
+	border-radius: 0;
+}
+
+input[type="date"],
+input[type="time"] {
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+/* Centralizar input type="time" em todos os navegadores */
+input[type="time"] {
+	text-align: center;
+}
+
+/* Firefox */
+input[type="time"]::-moz-selection {
+	background: transparent;
+}
+
+/* Chrome, Safari, Edge */
+input[type="time"]::-webkit-datetime-edit-fields-wrapper {
+	display: flex;
+	justify-content: center;
+	padding: 0;
+}
+
+input[type="time"]::-webkit-datetime-edit {
+	display: flex;
+	justify-content: center;
+}
+
+/* Scrollbar invisível */
 #divPontos::-webkit-scrollbar {
-  display: none;
+	display: none;
 }
+
 #divPontos {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
 }
-input[type='date'], input[type='time'] {
-  -webkit-appearance: none;
-  appearance: none;
-}
+
+/* Toast customization */
 .toastify {
-  opacity: 1 !important; /* Adjust the value (0.0 to 1.0) as desired */
+	opacity: 1 !important;
 }
-.datepicker-picker{
-  background-color: #000 !important;
-  border: 1px solid #444 !important;
-  color: #fff !important;
+
+/* Datepicker theme */
+.datepicker-picker {
+	background-color: #09140e !important;
+	border: 1px solid #1D4A2E !important;
+	color: #fff !important;
 }
-.datepicker-controls .button{
-  background-color: #000 !important;
-  border: 0px solid #fff !important;
-  color: #fff !important;
+
+.datepicker-controls .button {
+	background-color: #09140e !important;
+	border: 0px solid #fafafa !important;
+	color: #fff !important;
 }
-.datepicker-cell:not(.disabled):hover{
-  color: #000 !important; 
-} 
+
+.datepicker-cell.selected, .datepicker-cell.selected:hover {
+    background-color: #54dd89;
+    color: #000;
+    font-weight: 600;
+}
+
+.datepicker-cell:not(.disabled):hover {
+	color: #000 !important;
+}

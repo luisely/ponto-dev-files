@@ -23,16 +23,27 @@ export default defineConfig({
 				],
 			},
 			workbox: {
+				// Não cachear a página principal HTML
+				navigateFallback: null,
 				runtimeCaching: [
 					{
-						urlPattern: /^https:\/\/horas\.elytech\.com\.br\/.*/i,
+						// Cache da API do Supabase (apenas dados /rest/)
+						urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/.*/i,
 						handler: 'NetworkFirst',
 						options: {
-							cacheName: 'api-cache',
-							expiration: { maxEntries: 50, maxAgeSeconds: 300 },
+							cacheName: 'supabase-api-cache',
+							networkTimeoutSeconds: 3,
+							expiration: {
+								maxEntries: 50,
+								maxAgeSeconds: 60 * 5, // 5 minutos
+							},
+							cacheableResponse: {
+								statuses: [0, 200],
+							},
 						},
 					},
 					{
+						// Cache de fontes do Google
 						urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
 						handler: 'StaleWhileRevalidate',
 						options: {
@@ -47,6 +58,7 @@ export default defineConfig({
 						},
 					},
 					{
+						// Cache de webfonts do Google
 						urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
 						handler: 'CacheFirst',
 						options: {

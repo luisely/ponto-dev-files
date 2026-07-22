@@ -1,114 +1,174 @@
-export default function buildModal(
-	record?: string,
-	options?: {
-		message?: string
-		confirmText?: string
-		cancelText?: string
-		onConfirm?: (record?: string) => void
-		onCancel?: () => void
-		onOptimisticRemove?: () => void
-	},
-) {
-	const [date, time] = (record || '').split('&')
+import { initLucideIcons } from './utils/lucideIcons'
 
-	const overlay = document.createElement('div')
-	const modal = document.createElement('div')
-	const message = document.createElement('div')
-	const buttons = document.createElement('div')
-	const cancelBtn = document.createElement('button')
-	const confirmBtn = document.createElement('button')
+export type ModalButtonVariant = 'neutral' | 'danger' | 'menuNeutral' | 'menuDanger'
 
-	overlay.id = 'delete-modal-overlay'
-	overlay.className = 'fixed inset-0 flex items-center justify-center bg-black/40 z-9999 backdrop-blur-sm'
+export type ModalButton = {
+	text: string
+	/** Nome do ícone do Lucide (ex: 'log-out', 'eraser') */
+	icon?: string
+	variant?: ModalButtonVariant
+	/** Se fornecido, substitui as classes da variante */
+	className?: string
+	/**
+	 * Se true, ao clicar mostra spinner, chama onOptimisticRemove e espera 600ms
+	 * antes de disparar onClick. Bom para ações destrutivas com feedback visual.
+	 */
+	optimistic?: boolean
+	onClick?: () => void
+}
 
-	modal.className = 'dark:bg-zinc-900/35 dark:text-white bg-white/65 border border-black/10 backdrop-blur-md rounded-md p-4 shadow-lg text-center w-11/12 max-w-sm'
+export type ModalOptions = {
+	/** Título grande estilizado (ex: "MENU") */
+	title?: string
+	/** Mensagem descritiva (ex: confirmação de exclusão) */
+	message?: string
+	/** Adiciona linha separadora entre título/mensagem e botões */
+	showSeparator?: boolean
+	/** Layout dos botões: 'row' (default) ou 'column' */
+	layout?: 'row' | 'column'
+	buttons: ModalButton[]
+	/** Chamado antes do onClick de botões optimistic — para atualizar UI otimisticamente */
+	onOptimisticRemove?: () => void
+	/** Chamado ao clicar fora do modal (backdrop) ou pressionar Esc */
+	onDismiss?: () => void
+}
 
-	message.className = 'mb-4 text-lg'
-	// Use custom message if provided, otherwise default to the delete text
-	message.textContent = options?.message ?? `Deseja realmente excluir o registro de ${date} às ${time}?`
+const VARIANT_CLASSES: Record<ModalButtonVariant, string> = {
+	neutral:
+		'border border-[#1D4A2E] rounded-lg px-4 py-2 text-[#EDE7D6] hover:bg-[#1D4A2E]/50 cursor-pointer w-full transition-all duration-200',
+	danger:
+		'border border-[#6b0516] rounded-lg px-4 py-2 text-[#ef4444] hover:bg-[#6b0516]/50 cursor-pointer w-full transition-all duration-200',
+	menuNeutral:
+		'flex items-center justify-center gap-2 tracking-wider text-center px-4 py-2 text-lg lg:text-xl text-[#EDE7D6] hover:bg-[#1D4A2E]/50 border border-[#1D4A2E] rounded-lg cursor-pointer w-full transition-all duration-200',
+	menuDanger:
+		'flex items-center justify-center gap-2 tracking-wider text-center px-4 py-2 text-lg lg:text-xl text-[#ef4444] hover:bg-[#6b0516]/50 border border-[#6b0516] rounded-lg cursor-pointer w-full transition-all duration-200',
+}
 
-	buttons.className = 'flex gap-8 justify-center text-lg w-full'
+const SPINNER_HTML = `<div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent inline-block"></div>`
 
-	cancelBtn.textContent = options?.cancelText ?? 'Cancelar'
-	cancelBtn.className = 'dark:text-white dark:hover:text-black border rounded px-3 py-1 hover:bg-gray-300 dark:hover:bg-white cursor-pointer w-full'
+const MODAL_CONTENT_CLASS =
+	'bg-[#0D0D0D]/50 backdrop-blur-md border border-[#1D4A2E] rounded-lg p-5 shadow-lg text-center w-11/12 max-w-sm text-[#EDE7D6]'
 
-	confirmBtn.textContent = options?.confirmText ?? 'Excluir'
-	confirmBtn.className = 'bg-[#ef4444] hover:bg-red-700 px-3 py-1 rounded cursor-pointer w-full'
+function ensureSpinnerKeyframes() {
+	if (document.querySelector('style[data-spinner-style]')) return
+	const style = document.createElement('style')
+	style.setAttribute('data-spinner-style', 'true')
+	style.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`
+	document.head.append(style)
+}
 
-	buttons.appendChild(cancelBtn)
-	buttons.appendChild(confirmBtn)
+/** Escapa texto para uso seguro dentro de innerHTML */
+function esc(s: string): string {
+	const div = document.createElement('div')
+	div.textContent = s
+	return div.innerHTML
+}
 
-	modal.appendChild(message)
-	modal.appendChild(buttons)
-	overlay.appendChild(modal)
+function renderButton(btn: ModalButton, index: number): string {
+	const cls = btn.className ?? VARIANT_CLASSES[btn.variant ?? 'neutral']
+	const content = btn.icon ? `<i data-lucide="${esc(btn.icon)}" class="w-5 h-5"></i><span>${esc(btn.text)}</span>` : esc(btn.text)
+	return `<button type="button" class="${cls}" data-modal-btn="${index}">${content}</button>`
+}
 
-	// Add press feedback for mobile/touch
-	const addPressEffect = (btn: HTMLButtonElement) => {
-		btn.addEventListener('pointerdown', () => {
-			btn.style.transform = 'scale(0.95)'
-			btn.style.opacity = '0.8'
-		})
+function renderContent(opts: ModalOptions): string {
+	const layout = opts.layout ?? 'row'
+	const buttonsClass = layout === 'column' ? 'flex flex-col gap-3 w-full' : 'flex gap-3 w-full'
 
-		btn.addEventListener('pointerup', () => {
-			btn.style.transform = 'scale(1)'
-			btn.style.opacity = '1'
-		})
+	const titleHTML = opts.title ? `<div class="mb-4 text-2xl text-[#54dd89] tracking-wider font-bold">${esc(opts.title)}</div>` : ''
+	const messageHTML = opts.message ? `<div class="mb-4 text-base text-[#EDE7D6]">${esc(opts.message)}</div>` : ''
+	const separatorHTML = opts.showSeparator ? `<div class="border-t border-[#1D4A2E] my-4"></div>` : ''
 
-		btn.addEventListener('pointerleave', () => {
-			btn.style.transform = 'scale(1)'
-			btn.style.opacity = '1'
-		})
+	return `
+		<div class="${MODAL_CONTENT_CLASS}">
+			${titleHTML}
+			${messageHTML}
+			${separatorHTML}
+			<div class="${buttonsClass}">
+				${opts.buttons.map(renderButton).join('')}
+			</div>
+		</div>
+	`
+}
+
+function addPressEffect(btn: HTMLButtonElement) {
+	btn.addEventListener('pointerdown', () => {
+		btn.style.transform = 'scale(0.95)'
+		btn.style.opacity = '0.8'
+	})
+	const reset = () => {
+		btn.style.transform = 'scale(1)'
+		btn.style.opacity = '1'
+	}
+	btn.addEventListener('pointerup', reset)
+	btn.addEventListener('pointerleave', reset)
+}
+
+export default function buildModal(options: ModalOptions) {
+	ensureSpinnerKeyframes()
+
+	const dialog = document.createElement('dialog')
+	dialog.id = 'delete-modal-overlay'
+	dialog.innerHTML = renderContent(options)
+
+	document.body.append(dialog)
+
+	if (options.buttons.some((b) => b.icon)) {
+		initLucideIcons()
 	}
 
-	addPressEffect(cancelBtn)
-	addPressEffect(confirmBtn)
+	dialog.showModal()
 
-	// Add spinner inside button
-	const createSpinner = () => {
-		const spinnerHTML = `<div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent inline-block"></div>`
-		return spinnerHTML
-	}
+	// Aplica blur no conteúdo por trás do modal
+	document.body.style.overflow = 'hidden'
+	const mainContent = document.getElementById('mainScreen') || document.getElementById('loginScreen')
+	if (mainContent) mainContent.style.filter = 'blur(4px)'
 
-	// Add keyframes for spinner if not already present
-	if (!document.querySelector('style[data-spinner-style]')) {
-		const style = document.createElement('style')
-		style.setAttribute('data-spinner-style', 'true')
-		style.textContent = `
-			@keyframes spin {
-				to { transform: rotate(360deg); }
-			}
-		`
-		document.head.appendChild(style)
-	}
-
-	// Wire callbacks: view removes itself, then invokes callbacks so logic stays in caller
-	cancelBtn.addEventListener('click', () => {
-		cancelBtn.disabled = true
-		confirmBtn.disabled = true
-		overlay.remove()
-		options?.onCancel?.()
+	// Remove do DOM e restaura blur depois de fechar
+	dialog.addEventListener('close', () => {
+		dialog.remove()
+		if (mainContent) mainContent.style.filter = ''
+		document.body.style.overflow = ''
 	})
 
-	confirmBtn.addEventListener('click', () => {
-		confirmBtn.textContent = ''
-		confirmBtn.innerHTML = createSpinner()
-		cancelBtn.disabled = true
-		confirmBtn.disabled = true
-		// Otimistic update: remove from UI immediately
-		options?.onOptimisticRemove?.()
-		setTimeout(() => {
-			overlay.remove()
-			options?.onConfirm?.(record)
-		}, 600)
+	// Esc: onDismiss é chamado, dialog fecha sozinho após o evento cancel
+	dialog.addEventListener('cancel', () => {
+		options.onDismiss?.()
 	})
 
-	// fechar ao clicar fora
-	overlay.addEventListener('click', (e) => {
-		if (e.target === overlay) {
-			overlay.remove()
-			options?.onCancel?.()
+	// Clique no backdrop (área fora do conteúdo do modal)
+	dialog.addEventListener('click', (e) => {
+		if (e.target === dialog) {
+			options.onDismiss?.()
+			dialog.close()
 		}
 	})
 
-	return { overlay }
+	// Handlers dos botões
+	const buttonEls = dialog.querySelectorAll<HTMLButtonElement>('button[data-modal-btn]')
+	const close = () => dialog.close()
+
+	buttonEls.forEach((btn, i) => {
+		const cfg = options.buttons[i]
+		addPressEffect(btn)
+
+		btn.addEventListener('click', () => {
+			buttonEls.forEach((b) => {
+				b.disabled = true
+			})
+
+			if (cfg.optimistic) {
+				btn.innerHTML = SPINNER_HTML
+				options.onOptimisticRemove?.()
+				setTimeout(() => {
+					close()
+					cfg.onClick?.()
+				}, 600)
+			} else {
+				close()
+				cfg.onClick?.()
+			}
+		})
+	})
+
+	return { overlay: dialog, close }
 }

@@ -16,8 +16,15 @@ phases:
 
   post_build:
     commands:
+      - echo "Backing up current version to /v1 - `date`"
+      - aws s3 sync s3://${DEPLOY_BUCKET} s3://${DEPLOY_BUCKET}/v1 --delete --exclude "v1/*"
+      - |
+        # Ajusta paths absolutos no index.html do backup para relativos
+        aws s3 cp s3://${DEPLOY_BUCKET}/v1/index.html /tmp/v1-index.html
+        sed -i 's|src="/|src="./|g; s|href="/|href="./|g' /tmp/v1-index.html
+        aws s3 cp /tmp/v1-index.html s3://${DEPLOY_BUCKET}/v1/index.html --cache-control "no-store, no-cache, must-revalidate" --content-type "text/html"
       - echo "Starting sync to S3 - `date`"
-      - aws s3 sync dist/ s3://${DEPLOY_BUCKET} --delete
+      - aws s3 sync dist/ s3://${DEPLOY_BUCKET} --delete --exclude "v1/*"
       - aws s3 cp dist/index.html s3://${DEPLOY_BUCKET}/index.html --cache-control "no-store, no-cache, must-revalidate" --content-type "text/html"
       - aws cloudfront create-invalidation --distribution-id ${CF_ID} --paths "/*"
       - echo "Sync completed on `date`"

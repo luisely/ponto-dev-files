@@ -1,27 +1,23 @@
-import { createIcons, Eraser, LogOut, Menu } from 'lucide'
 import { Datepicker } from 'vanillajs-datepicker'
-import {
-	btnRegister,
-	BUTTON_WITH_LOADING,
-	form,
-	inputName,
-	inputPin,
-	inputTime,
-	loginFields,
-	menuBtn,
-	tabelaDiv,
-	toastError,
-	toastInfo,
-	toastSuccess,
-	welcomeMessage,
-	welcomeTitle,
-} from '../conts'
-import { credentials } from '../credentials'
-import buildDeleteModal from '../modalView'
-import buildModalMenu from '../modalViewMenu'
-import { renderSkeleton } from '../renderSkeleton'
-import pointsController from './PointsController'
+import { btnRegister, inputTime, menuBtn, tabelaDiv } from '../dom'
+import { offlineQueueService } from '../services/OfflineQueueService'
 
+/**
+ * HTML do spinner exibido no botão de registrar enquanto processa a requisição.
+ */
+const BUTTON_WITH_LOADING = `<svg class="animate-spin h-5 w-5 mr-2 inline-block dark:text-[#F5B11E] text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" role="img" aria-label="Carregando">
+	<title>Carregando</title>
+	<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+	<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+</svg>`
+
+/**
+ * Concentra interações da UI: init de widgets, binds de eventos e estados
+ * pontuais (loading do botão, badge de pendências, status de conexão).
+ *
+ * Feedbacks (toasts), controle de telas e ícones do Lucide ficam em módulos
+ * dedicados — este arquivo evita virar um "God object".
+ */
 class UIController {
 	initDatepicker() {
 		const elem = document.querySelector('input[name="date"]') as HTMLInputElement
@@ -41,29 +37,11 @@ class UIController {
 		})
 	}
 
-	setNameAndDigitsInputs() {
-		const { name, digits } = credentials.get()
-
-		if (name && digits) {
-			inputName.value = name
-			inputPin.value = digits
+	bindGoogleLogin(handler: () => void) {
+		const googleLoginBtn = document.getElementById('googleLoginBtn')
+		if (googleLoginBtn) {
+			googleLoginBtn.addEventListener('click', handler)
 		}
-	}
-
-	renderSkeleton() {
-		renderSkeleton()
-	}
-
-	showSuccess(msg: string) {
-		toastSuccess(msg)
-	}
-
-	showError(msg: string) {
-		toastError(msg)
-	}
-
-	showInfo(msg: string) {
-		toastInfo(msg)
 	}
 
 	bindRegister(handler: (e?: Event) => void) {
@@ -74,8 +52,15 @@ class UIController {
 		menuBtn.addEventListener('click', handler)
 	}
 
-	bindFormFocusOut(handler: () => void) {
-		form.addEventListener('focusout', handler)
+	bindTableDelete(handler: (record: string | undefined) => void) {
+		tabelaDiv.addEventListener('click', (event) => {
+			const target = event.target as Element | null
+			const linkClicado = target?.closest('.link-delete') as HTMLElement
+			if (linkClicado) {
+				event.preventDefault()
+				handler(linkClicado.dataset.record)
+			}
+		})
 	}
 
 	isLoading(isLoading: boolean) {
@@ -90,110 +75,32 @@ class UIController {
 		}
 	}
 
-	bindTableDelete(handler: (record: string | undefined) => void) {
-		tabelaDiv.addEventListener('click', (event) => {
-			const target = event.target as Element | null
-			const linkClicado = target?.closest('.link-delete') as HTMLElement
-			if (linkClicado) {
-				event.preventDefault()
-				handler(linkClicado.dataset.record)
-			}
-		})
+	updatePendingBadge(usuario_id: string) {
+		const count = offlineQueueService.getPendingCount(usuario_id)
+		const badge = document.getElementById('pendingBadge')
+		if (!badge) return
+
+		if (count > 0) {
+			badge.textContent = count.toString()
+			badge.classList.remove('hidden')
+		} else {
+			badge.classList.add('hidden')
+		}
 	}
 
-	showWelcomeMessage(userName: string) {
-		welcomeTitle.textContent = `Bem-vindo, ${userName}!`
-		welcomeMessage.classList.remove('hidden')
-		loginFields.classList.add('hidden')
-	}
+	updateConnectionStatus(isOnline: boolean) {
+		const statusIndicator = document.getElementById('connectionStatus')
+		if (!statusIndicator) return
 
-	hideWelcomeMessage() {
-		welcomeMessage.classList.add('hidden')
-		loginFields.classList.remove('hidden')
-	}
-
-	createLucideIcons() {
-		createIcons({
-			icons: {
-				Menu,
-				LogOut,
-				Eraser,
-			},
-		})
-	}
-
-	showDeleteModal(record: string | undefined, onConfirm: (r?: string) => void) {
-		const prev = document.getElementById('delete-modal-overlay')
-		if (prev) prev.remove()
-
-		const { overlay } = buildDeleteModal(record, {
-			onConfirm: async (r?: string) => {
-				try {
-					onConfirm(r)
-				} catch (err) {
-					toastError('Erro ao excluir o registro.')
-					console.error('Error in onConfirm handler:', err)
-				}
-			},
-			onCancel: () => {
-				/* no-op */
-			},
-			onOptimisticRemove: () => {
-				// Remove only the specific time item, not the entire date block
-				if (record) {
-					const [recordDate, recordTime] = record.split('&')
-					const buildElementId = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, '-')
-					const timeItemId = `time-item-${buildElementId(`${recordDate}-${recordTime ?? ''}`)}`
-					const dateBlockId = `date-block-${buildElementId(recordDate)}`
-
-					const dateBlock = document.getElementById(dateBlockId)
-					const timeItem = document.getElementById(timeItemId)
-
-					if (timeItem) {
-						timeItem.remove()
-						if (dateBlock) {
-							const remainingTimes = dateBlock.querySelectorAll('[id^="time-item-"]').length
-							if (remainingTimes === 0) {
-								dateBlock.remove()
-							}
-						}
-					}
-				}
-			},
-		})
-
-		document.body.appendChild(overlay)
-	}
-
-	showMenuModal() {
-		// Remove modal anterior caso exista
-		const prev = document.getElementById('delete-modal-overlay')
-		if (prev) prev.remove()
-
-		const { overlay } = buildModalMenu({
-			message: 'O QUE DESEJA?',
-			deleteAllText: 'APAGAR TUDO',
-			logoutText: 'SAIR',
-			onLogout: () => {
-				credentials.clear()
-				location.reload()
-			},
-			onDeleteAll: async () => {
-				const confirmed = confirm('Todos os registros serão excluídos. Esta ação não pode ser desfeita.')
-				if (confirmed) {
-					await pointsController.deleteAllRecords()
-					credentials.clearPontos()
-				}
-			},
-			onOptimisticRemove: () => {
-				/* no-op for now; kept for future hooks */
-			},
-			onCancel: () => {
-				/* no-op for now; kept for future hooks */
-			},
-		})
-
-		document.body.appendChild(overlay)
+		if (isOnline) {
+			statusIndicator.textContent = 'online'
+			statusIndicator.classList.remove('offline')
+			statusIndicator.classList.add('online')
+		} else {
+			statusIndicator.textContent = 'offline'
+			statusIndicator.classList.remove('online')
+			statusIndicator.classList.add('offline')
+		}
 	}
 }
 

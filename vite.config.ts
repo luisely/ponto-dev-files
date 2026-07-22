@@ -1,10 +1,18 @@
 import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
+import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
 	plugins: [
+		// O React Compiler roda como plugin Babel e precisa executar primeiro no
+		// pipeline (Babel é opt-in a partir do @vitejs/plugin-react v6/Vite 8).
+		react({
+			babel: {
+				plugins: [['babel-plugin-react-compiler', { target: '19' }]],
+			},
+		}),
 		tailwindcss(),
 		VitePWA({
 			registerType: 'autoUpdate',
@@ -94,6 +102,16 @@ export default defineConfig({
 				entryFileNames: '[name]-[hash].js',
 				chunkFileNames: '[name]-[hash].js',
 				assetFileNames: '[name]-[hash].[ext]',
+				// Separa as dependências de vendor em chunks próprios: mantém cada
+				// chunk abaixo do limite de 500 kB e melhora o cache do navegador
+				// (o código de vendor muda com menos frequência que o da app).
+				manualChunks(id) {
+					if (!id.includes('node_modules')) return undefined
+					if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return 'react-vendor'
+					if (id.includes('@supabase')) return 'supabase'
+					if (id.includes('lucide-react')) return 'icons'
+					return 'vendor'
+				},
 			},
 		},
 	},

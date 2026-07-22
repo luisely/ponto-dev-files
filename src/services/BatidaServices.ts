@@ -1,38 +1,27 @@
 import { debugLog } from '../config/debug'
 import { supabase } from '../lib/supabase'
+import { dateBRtoISO, ensureSeconds, parseRecord } from '../utils/dateFormat'
 import { authService } from './AuthService'
 import { offlineQueueService } from './OfflineQueueService'
 
 class BatidaServices {
-	/**
-	 * Adiciona um novo registro de ponto
-	 * @param date - Data no formato dd/mm/yyyy
-	 * @param time - Hora no formato HH:mm
-	 * @param user_id - ID do usuário (opcional, busca se não fornecido)
-	 */
 	async add(date: string, time: string, user_id?: string) {
-		// Se não passou user_id, tenta obter
 		if (!user_id) {
 			const user = await authService.getUser()
 			if (!user) throw new Error('Usuário não autenticado')
 			user_id = user.id
 		}
 
-		// Converter date de dd/mm/yyyy para yyyy-mm-dd (ISO)
-		const [day, month, year] = date.split('/')
-		const dateISO = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+		const dateISO = dateBRtoISO(date)
 
-		// Garantir formato HH:mm:ss
-		const timeFormatted = time.length === 5 ? `${time}:00` : time
+		const timeFormatted = ensureSeconds(time)
 
-		// Se está offline, adiciona na fila
 		if (!navigator.onLine) {
 			console.log('📵 Offline detectado - adicionando na fila')
 			offlineQueueService.addToQueue(user_id, date, time)
 			return { offline: true, queued: true }
 		}
 
-		// Tenta enviar online
 		try {
 			const { data, error } = await supabase
 				.from('pontos')
@@ -47,17 +36,12 @@ class BatidaServices {
 			if (error) throw error
 			return data
 		} catch (error) {
-			// Se falhou por erro de rede, adiciona na fila
 			console.error('❌ Erro ao enviar - adicionando na fila:', error)
 			offlineQueueService.addToQueue(user_id, date, time)
 			throw error
 		}
 	}
 
-	/**
-	 * Busca todos os pontos do usuário.
-	 * @param userId - ID do usuário (opcional, busca se não fornecido)
-	 */
 	async get(userId?: string) {
 		debugLog('📡 [BatidaServices] get() chamado')
 
@@ -73,11 +57,6 @@ class BatidaServices {
 		return data || []
 	}
 
-	/**
-	 * Remove um registro específico
-	 * @param record - String no formato "dd/mm/yyyy&HH:mm"
-	 * @param userId - ID do usuário (opcional, busca se não fornecido)
-	 */
 	async remove(record: string | undefined, userId?: string) {
 		if (!record) throw new Error('Registro inválido')
 
@@ -87,22 +66,16 @@ class BatidaServices {
 			userId = user.id
 		}
 
-		const [date, time] = record.split('&')
-		const [day, month, year] = date.split('/')
-		const dateISO = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+		const { date, time } = parseRecord(record)
+		const dateISO = dateBRtoISO(date)
 
-		// Garantir formato HH:mm:ss
-		const timeFormatted = time.length === 5 ? `${time}:00` : time
+		const timeFormatted = ensureSeconds(time)
 
 		const { error } = await supabase.from('pontos').delete().eq('usuario_id', userId).eq('data', dateISO).eq('hora', timeFormatted)
 
 		if (error) throw error
 	}
 
-	/**
-	 * Remove todos os registros do usuário
-	 * @param userId - ID do usuário (opcional, busca se não fornecido)
-	 */
 	async removeAll(userId?: string) {
 		if (!userId) {
 			const user = await authService.getUser()
@@ -115,9 +88,6 @@ class BatidaServices {
 		if (error) throw error
 	}
 
-	/**
-	 * Processa a fila de pontos pendentes (sync)
-	 */
 	async processQueue(): Promise<{ success: number; failed: number }> {
 		const user = await authService.getUser()
 		if (!user) {
@@ -132,21 +102,16 @@ class BatidaServices {
 		console.log(`🔄 Processando ${queue.length} pontos pendentes...`)
 
 		for (const ponto of queue) {
-			// Pula se já está em erro permanente
 			if (ponto.status === 'error' && (ponto.retryCount || 0) >= 3) {
 				continue
 			}
 
 			try {
-				// Marca como sincronizando
 				offlineQueueService.updateStatus(ponto.id, 'syncing')
 
-				// Converte data para ISO
-				const [day, month, year] = ponto.data.split('/')
-				const dateISO = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
-				const timeFormatted = ponto.hora.length === 5 ? `${ponto.hora}:00` : ponto.hora
+				const dateISO = dateBRtoISO(ponto.data)
+				const timeFormatted = ensureSeconds(ponto.hora)
 
-				// Tenta enviar
 				const { error } = await supabase.from('pontos').insert({
 					usuario_id: ponto.usuario_id,
 					data: dateISO,
@@ -154,7 +119,6 @@ class BatidaServices {
 				})
 
 				if (error) {
-					// Verifica se é erro de duplicata (constraint unique)
 					if (error.code === '23505') {
 						console.warn('⚠️ Registro duplicado - removendo da fila:', ponto.id)
 						offlineQueueService.removeFromQueue(ponto.id)
@@ -162,7 +126,6 @@ class BatidaServices {
 						throw error
 					}
 				} else {
-					// Sucesso! Remove da fila
 					console.log('✅ Ponto sincronizado:', ponto.id)
 					offlineQueueService.removeFromQueue(ponto.id)
 					success++
@@ -170,7 +133,6 @@ class BatidaServices {
 			} catch (error) {
 				console.error('❌ Erro ao sincronizar ponto:', ponto.id, error)
 
-				// Incrementa retry
 				const canRetry = offlineQueueService.incrementRetry(ponto.id)
 
 				if (canRetry) {

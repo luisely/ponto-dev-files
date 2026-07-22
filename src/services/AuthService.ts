@@ -5,13 +5,9 @@ import { supabase } from '../lib/supabase'
 class AuthService {
 	private userCache: User | null = null
 	private cacheTimestamp: number = 0
-	private readonly CACHE_DURATION = 5000 // 5 segundos
+	private readonly CACHE_DURATION = 5000
 
-	/**
-	 * Inicia o fluxo de autenticação com Google
-	 */
 	async signInWithGoogle() {
-		// Usa a URL atual automaticamente
 		const redirectUrl = window.location.origin
 		console.log('🔗 Redirect URL:', redirectUrl)
 
@@ -25,20 +21,13 @@ class AuthService {
 		return data
 	}
 
-	/**
-	 * Faz logout do usuário
-	 */
 	async signOut() {
 		this.clearCache()
 		const { error } = await supabase.auth.signOut()
 		if (error) throw error
 	}
 
-	/**
-	 * Retorna o usuário atual (com cache)
-	 */
 	async getUser(): Promise<User | null> {
-		// Retorna cache se válido (menos de 5 segundos)
 		const now = Date.now()
 		if (this.userCache && now - this.cacheTimestamp < this.CACHE_DURATION) {
 			return this.userCache
@@ -48,30 +37,22 @@ class AuthService {
 			data: { user },
 		} = await supabase.auth.getUser()
 
-		// Atualiza cache
 		this.userCache = user
 		this.cacheTimestamp = now
 
 		return user
 	}
 
-	/**
-	 * Limpa o cache de usuário
-	 */
 	private clearCache() {
 		this.userCache = null
 		this.cacheTimestamp = 0
 	}
 
-	/**
-	 * Retorna a sessão atual
-	 */
 	async getSession() {
 		const {
 			data: { session },
 		} = await supabase.auth.getSession()
 
-		// Se tem sessão, atualiza o cache com o usuário
 		if (session?.user) {
 			this.userCache = session.user
 			this.cacheTimestamp = Date.now()
@@ -80,15 +61,10 @@ class AuthService {
 		return session
 	}
 
-	/**
-	 * Observa mudanças no estado de autenticação.
-	 * Passa o evento para o callback para permitir filtragem (ex: ignorar TOKEN_REFRESHED).
-	 */
 	onAuthStateChange(callback: (event: AuthChangeEvent, user: User | null) => void) {
 		return supabase.auth.onAuthStateChange((event, session) => {
 			const user = session?.user ?? null
 
-			// Atualiza cache quando há mudança de estado
 			this.userCache = user
 			this.cacheTimestamp = Date.now()
 
@@ -96,11 +72,6 @@ class AuthService {
 		})
 	}
 
-	/**
-	 * Garante que o usuário existe na tabela public.usuarios.
-	 * Cria se não existir. Usa flag em localStorage pra não verificar
-	 * em todo reload — só checa na primeira vez ou se o flag não existe.
-	 */
 	async ensureUserProfile(user: User): Promise<void> {
 		const flagKey = `profile_ensured_${user.id}`
 		if (localStorage.getItem(flagKey)) return
@@ -108,13 +79,11 @@ class AuthService {
 		debugLog('👤 [AuthService] ensureUserProfile chamado para user:', user.id)
 		const { data: existingUser, error: fetchError } = await supabase.from('usuarios').select('id').eq('id', user.id).single()
 
-		// Se já existe, marca flag e retorna
 		if (existingUser) {
 			localStorage.setItem(flagKey, '1')
 			return
 		}
 
-		// Se não existe (404), cria
 		if (fetchError && fetchError.code === 'PGRST116') {
 			const nome = user.user_metadata?.full_name || user.email || 'Usuário'
 
@@ -132,7 +101,6 @@ class AuthService {
 			return
 		}
 
-		// Se houve outro erro, lança
 		if (fetchError) {
 			console.error('Erro ao verificar usuário:', fetchError)
 			throw fetchError

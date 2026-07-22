@@ -6,12 +6,6 @@ interface TotalMinutesResult {
 	isOk?: boolean
 }
 
-/**
- * Computes the total minutes from a list of time strings.
- * @param times
- * @returns {object} An object containing total minutes and status flags.
- */
-
 export function computeTotalMinutesFromTimes(times: string[]): TotalMinutesResult {
 	if (!times || times.length === 0) return { minutes: 0, incomplete: false }
 	const sorted = times.slice().sort()

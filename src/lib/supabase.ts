@@ -9,7 +9,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Types para as tabelas do Supabase
 export type Usuario = {
 	id: string
 	created_at: string
@@ -20,12 +19,11 @@ export type Ponto = {
 	id: string
 	created_at: string
 	usuario_id: string
-	data: string // Date ISO format (YYYY-MM-DD)
-	hora: string // Time format (HH:MM:SS)
-	time: string | null // Timestamp (não usado)
+	data: string
+	hora: string
+	time: string | null
 }
 
-// Database types
 export type Database = {
 	public: {
 		Tables: {

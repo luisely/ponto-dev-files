@@ -1,13 +1,10 @@
-import Toastify from 'toastify-js'
+import type { CSSProperties } from 'react'
+import { toast } from 'sonner'
 
-/**
- * Wrappers para notificações toast usadas na aplicação.
- * Visual alinhado com o card do welcome message:
- * - bg-[#0D0D0D]/50 + border-[#1D4A2E] + backdrop-blur
- */
+const TOAST_DURATION = 3000
 
-const TOAST_STYLE_BASE = {
-	fontWeight: '600',
+export const TOAST_STYLE_BASE: CSSProperties = {
+	fontWeight: 600,
 	width: 'calc(100vw - 2rem)',
 	maxWidth: '36rem',
 	margin: '0 auto',
@@ -22,43 +19,40 @@ const TOAST_STYLE_BASE = {
 }
 
 export const toastSuccess = (message: string) =>
-	Toastify({
-		text: message,
+	toast.success(message, {
+		unstyled: true,
 		className: 'text-sm',
-		duration: 3000,
-		gravity: 'bottom',
-		position: 'center',
+		duration: TOAST_DURATION,
+		position: 'bottom-center',
 		style: {
 			...TOAST_STYLE_BASE,
 			borderColor: '#1D4A2E',
 			color: '#54dd89',
 		},
-	}).showToast()
+	})
 
 export const toastError = (message: string) =>
-	Toastify({
-		text: message,
+	toast.error(message, {
+		unstyled: true,
 		className: 'text-sm',
-		duration: 3000,
-		gravity: 'bottom',
-		position: 'center',
+		duration: TOAST_DURATION,
+		position: 'bottom-center',
 		style: {
 			...TOAST_STYLE_BASE,
 			borderColor: '#6b0516',
 			color: '#ef4444',
 		},
-	}).showToast()
+	})
 
 export const toastInfo = (message: string) =>
-	Toastify({
-		text: message,
+	toast.info(message, {
+		unstyled: true,
 		className: 'text-sm',
-		duration: 3000,
-		gravity: 'top',
-		position: 'center',
+		duration: TOAST_DURATION,
+		position: 'top-center',
 		style: {
 			...TOAST_STYLE_BASE,
 			borderColor: '#7c5812',
 			color: '#f59e0b',
 		},
-	}).showToast()
+	})

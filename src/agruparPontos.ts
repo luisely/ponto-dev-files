@@ -19,18 +19,10 @@ export type TotalDia = {
 
 export type DiaAgrupado = {
 	date: string
-	pontos: PontoRaw[] // ordenados por hora ASC
+	pontos: PontoRaw[]
 	total: TotalDia
 }
 
-/**
- * Agrupa uma lista plana de batidas por data, ordena as datas em ordem
- * decrescente (mais recente primeiro), ordena as horas dentro de cada dia
- * em ordem crescente e computa o total do dia.
- *
- * Função pura — não toca em DOM. A ordenação é feita aqui e não no render
- * porque a lista pode chegar fora de ordem depois do merge com a fila offline.
- */
 export function agruparPontos(pontos: PontoRaw[]): DiaAgrupado[] {
 	if (!pontos || pontos.length === 0) return []
 
@@ -56,9 +48,6 @@ export function agruparPontos(pontos: PontoRaw[]): DiaAgrupado[] {
 	})
 }
 
-/**
- * Compara duas datas no formato "dd/mm/yyyy" — mais recente primeiro.
- */
 function compararDatasDesc(a: string, b: string): number {
 	const [da, ma, ya] = a.split('/').map(Number)
 	const [db, mb, yb] = b.split('/').map(Number)

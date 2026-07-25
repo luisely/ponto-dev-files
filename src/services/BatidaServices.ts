@@ -67,7 +67,7 @@ class BatidaServices {
 			userId = user.id
 		}
 
-		const { data, error } = await supabase.from('pontos').select('*').eq('usuario_id', userId).order('data', { ascending: false }).order('hora', { ascending: false })
+		const { data, error } = await supabase.from('pontos').select('data, hora').eq('usuario_id', userId).order('data', { ascending: false }).order('hora', { ascending: false })
 
 		if (error) throw error
 		return data || []

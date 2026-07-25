@@ -88,12 +88,25 @@ export default defineConfig({
 	},
 	build: {
 		target: 'esnext',
-		minify: 'terser',
+		// `true` usa o minificador nativo do Rolldown (oxc): sem dependência extra.
+		// Não usar 'terser' (não é dependência declarada) nem 'esbuild' (o Vite 8 não o empacota).
+		minify: true,
 		rollupOptions: {
 			output: {
 				entryFileNames: '[name]-[hash].js',
 				chunkFileNames: '[name]-[hash].js',
 				assetFileNames: '[name]-[hash].[ext]',
+				// Separa as libs de terceiros do código da aplicação. O Supabase é ~75% do
+				// bundle e muda raramente, então mantê-lo em um chunk próprio evita que
+				// cada deploy invalide o precache do service worker inteiro.
+				// No Rolldown `manualChunks` precisa ser função (a forma de objeto falha).
+				manualChunks(id: string) {
+					if (id.includes('node_modules/@supabase')) return 'supabase'
+					if (id.includes('node_modules/vanillajs-datepicker')) return 'datepicker'
+					if (id.includes('node_modules/toastify-js')) return 'toastify'
+					if (id.includes('node_modules/lucide')) return 'lucide'
+					return undefined
+				},
 			},
 		},
 	},

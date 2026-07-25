@@ -24,7 +24,15 @@ phases:
         sed -i 's|src="/|src="./|g; s|href="/|href="./|g' /tmp/v1-index.html
         aws s3 cp /tmp/v1-index.html s3://${DEPLOY_BUCKET}/v1/index.html --cache-control "no-store, no-cache, must-revalidate" --content-type "text/html"
       - echo "Starting sync to S3 - `date`"
-      - aws s3 sync dist/ s3://${DEPLOY_BUCKET} --delete --exclude "v1/*"
+      # Todos os arquivos sobem como imutáveis: os assets têm hash no nome,
+      # então nunca mudam de conteúdo sob o mesmo nome.
+      - aws s3 sync dist/ s3://${DEPLOY_BUCKET} --delete --exclude "v1/*" --cache-control "public, max-age=31536000, immutable"
+      # Os arquivos SEM hash precisam ser sempre revalidados, senão o usuário
+      # fica preso numa versão antiga do app. Sobrescreve o cache-control acima.
       - aws s3 cp dist/index.html s3://${DEPLOY_BUCKET}/index.html --cache-control "no-store, no-cache, must-revalidate" --content-type "text/html"
-      - aws cloudfront create-invalidation --distribution-id ${CF_ID} --paths "/*"
+      - aws s3 cp dist/sw.js s3://${DEPLOY_BUCKET}/sw.js --cache-control "no-cache" --content-type "text/javascript"
+      - aws s3 cp dist/registerSW.js s3://${DEPLOY_BUCKET}/registerSW.js --cache-control "no-cache" --content-type "text/javascript"
+      - aws s3 cp dist/manifest.webmanifest s3://${DEPLOY_BUCKET}/manifest.webmanifest --cache-control "public, max-age=3600" --content-type "application/manifest+json"
+      # Só os arquivos sem hash precisam de invalidação (os hasheados mudam de nome).
+      - aws cloudfront create-invalidation --distribution-id ${CF_ID} --paths "/" "/index.html" "/sw.js" "/registerSW.js" "/manifest.webmanifest"
       - echo "Sync completed on `date`"

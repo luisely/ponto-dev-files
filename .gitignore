@@ -21,3 +21,7 @@ OFFLINE*.MD
 *.map
 ponto.code-workspace
 *.zip
+
+# Build artifacts
+tsconfig.tsbuildinfo
+stats.html

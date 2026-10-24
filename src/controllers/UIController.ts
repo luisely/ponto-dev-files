@@ -1,5 +1,4 @@
-import { Datepicker } from 'vanillajs-datepicker'
-import { btnRegister, inputTime, menuBtn, tabelaDiv } from '../dom'
+import { btnRegister, inputDate, inputTime, menuBtn, tabelaDiv } from '../dom'
 import { offlineQueueService } from '../services/OfflineQueueService'
 
 /**
@@ -19,14 +18,25 @@ const BUTTON_WITH_LOADING = `<svg class="animate-spin h-5 w-5 mr-2 inline-block 
  * dedicados — este arquivo evita virar um "God object".
  */
 class UIController {
+	private datepickerLoading: Promise<void> | null = null
+
+	/**
+	 * Carrega o datepicker sob demanda (idempotente). Chamado quando a tela
+	 * principal é exibida, para não pesar no carregamento da tela de login.
+	 */
 	initDatepicker() {
-		const elem = document.querySelector('input[name="date"]') as HTMLInputElement
-		const datepicker = new Datepicker(elem, {
-			autohide: true,
-			language: 'pt',
-			format: 'dd/mm/yyyy',
-		})
-		datepicker.setDate(new Date())
+		this.datepickerLoading ??= import('../ui/datepicker')
+			.then(({ createDatepicker }) => createDatepicker(inputDate))
+			.catch((error) => {
+				console.error('Erro ao carregar o datepicker:', error)
+				this.datepickerLoading = null
+			})
+		return this.datepickerLoading
+	}
+
+	/** Preenche a data de hoje antes do datepicker carregar (mesmo formato dele). */
+	setDefaultDate() {
+		inputDate.value = new Date().toLocaleDateString('pt-BR')
 	}
 
 	setDefaultTime() {

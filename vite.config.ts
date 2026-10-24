@@ -8,6 +8,8 @@ export default defineConfig({
 		tailwindcss(),
 		VitePWA({
 			registerType: 'autoUpdate',
+			// registerSW.js com `defer`, para não bloquear a renderização no <head>
+			injectRegister: 'script-defer',
 			includeAssets: ['icons/**/*'],
 			manifest: {
 				name: 'Registrar Ponto',
@@ -101,6 +103,9 @@ export default defineConfig({
 				// cada deploy invalide o precache do service worker inteiro.
 				// No Rolldown `manualChunks` precisa ser função (a forma de objeto falha).
 				manualChunks(id: string) {
+					// CSS segue o chunk de quem importa: o do toastify entra no CSS principal
+					// (um request bloqueante a menos) e o do datepicker vai junto com o import() dele.
+					if (id.endsWith('.css')) return undefined
 					if (id.includes('node_modules/@supabase')) return 'supabase'
 					if (id.includes('node_modules/vanillajs-datepicker')) return 'datepicker'
 					if (id.includes('node_modules/toastify-js')) return 'toastify'

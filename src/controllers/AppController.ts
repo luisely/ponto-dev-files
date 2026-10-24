@@ -24,7 +24,7 @@ class AppController {
 	async init() {
 		debugLog('🎬 [AppController] init() chamado')
 
-		uiController.initDatepicker()
+		uiController.setDefaultDate()
 		uiController.setDefaultTime()
 		initLucideIcons()
 
@@ -52,6 +52,7 @@ class AppController {
 
 			const userName = session.user.user_metadata?.full_name || session.user.email || 'Usuário'
 			showMainScreen(userName)
+			uiController.initDatepicker()
 
 			try {
 				await authService.ensureUserProfile(session.user)
@@ -96,6 +97,7 @@ class AppController {
 
 				const userName = user.user_metadata?.full_name || user.email || 'Usuário'
 				showMainScreen(userName)
+				uiController.initDatepicker()
 
 				await pointsController.initForUser({ id: user.id })
 				uiController.updatePendingBadge(user.id)

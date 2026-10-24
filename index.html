@@ -8,23 +8,41 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Registrar">
   <meta name="theme-color" content="#030812">
+  <meta name="description" content="Registre seus horários de entrada e saída de forma simples e segura, mesmo offline.">
   <link rel="apple-touch-icon" href="/icons/AppIcon.png">
   <link rel="icon" href="/icons/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Share+Tech+Mono&family=Space+Grotesk:wght@300..700&display=swap"
-    rel="stylesheet">
+  <!-- Fontes carregadas sem bloquear a renderização (display=swap mostra o fallback até chegarem) -->
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Space+Grotesk:wght@300..700&display=swap"
+    onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Space+Grotesk:wght@300..700&display=swap">
+  </noscript>
 
   <title>Ponto Eletrônico</title>
 
   <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-22E374QYHG"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-22E374QYHG');
+    // O gtag.js é pesado (~180 KB) e não é necessário para a primeira renderização:
+    // só é baixado depois do load, quando o navegador estiver ocioso. Os comandos
+    // acima ficam enfileirados no dataLayer até lá.
+    window.addEventListener('load', () => {
+      const load = () => {
+        const s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-22E374QYHG';
+        document.head.appendChild(s);
+      };
+      if ('requestIdleCallback' in window) requestIdleCallback(load, { timeout: 3000 });
+      else setTimeout(load, 1);
+    });
   </script>
 </head>
 
@@ -79,7 +97,7 @@
           Entrar com Google
         </button>
 
-        <div class="mt-6 text-center text-xs text-gray-500">
+        <div class="mt-6 text-center text-xs text-gray-400">
           Ao continuar, você concorda com nossos Termos de Uso
         </div>
       </div>
@@ -158,6 +176,21 @@
     </div>
   </div>
 
+  <script>
+    // Sem sessão do Supabase salva (e sem retorno do OAuth na URL), mostra o login
+    // já no primeiro paint, sem esperar o bundle do Supabase carregar. O
+    // AppController chega à mesma conclusão depois e showLoginScreen() é idempotente.
+    (() => {
+      try {
+        if (/[?&#](code|access_token|error)=/.test(location.search + location.hash)) return;
+        if (Object.keys(localStorage).some((k) => /^sb-.+-auth-token$/.test(k))) return;
+        document.getElementById('loadingScreen').classList.add('hidden');
+        const login = document.getElementById('loginScreen');
+        login.classList.remove('hidden');
+        login.classList.add('flex');
+      } catch {}
+    })();
+  </script>
   <script type="module" src="/src/main.ts"></script>
 </body>
 
